@@ -5,7 +5,7 @@ import InputError from '@/Components/InputError.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
-import { Head, Link, useForm } from '@inertiajs/vue3';
+import {Head, Link, router, useForm} from '@inertiajs/vue3';
 
 defineProps({
     canResetPassword: {
@@ -35,6 +35,12 @@ const submit = () => {
 
         <div v-if="status" class="mb-4 font-medium text-sm text-green-600">
             {{ status }}
+        </div>
+
+        <div class="text-center">
+            <a :href="route('github.login')">
+                <img src="https://icon-library.com/images/github-icon-white/github-icon-white-6.jpg" alt="GitHub" width="50px" class="mx-auto scale-100">
+            </a>
         </div>
 
         <form @submit.prevent="submit">
