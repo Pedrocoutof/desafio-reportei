@@ -29,4 +29,15 @@ class GitHubController extends Controller
         return response()->json($repositories);
     }
 
+
+    function getRepository(Request $request) {
+        $client = new Client();
+
+        $response = $client->get($this->urlbase . "repos/" . $request->user . "/" . $request->repository);
+
+        $repository = json_decode($response->getBody()->getContents());
+
+        return response()->json($repository);
+    }
+
 }
