@@ -25,4 +25,13 @@ class Repository extends Model
         return $this->HasMany(Commit::class);
     }
 
+    static function getRepository($userId, $repository): \Illuminate\Database\Eloquent\Builder|Model|null
+    {
+        $repository = Repository::with(['owner'])
+            ->where('owner', '=', $userId)
+            ->where('name', '=', $repository)
+            ->first();
+
+        return $repository ?? null;
+    }
 }

@@ -57,19 +57,22 @@ class GitHubService
         return json_decode($response->getBody()->getContents());
     }
 
-    function getAllCommits($user, $repo, $perPage = 30)
+    function getAllCommits($user, $repo, $since = "1970-01-01", $perPage = 30, )
     {
         $url = "{$this->baseUrl}/repos/{$user}/{$repo}/commits";
         $commits = [];
         $page = 1;
+
 
         do {
             $response = $this->request('GET', $url, [
                 "query" => [
                     "per_page" => $perPage,
                     "page" => $page,
+                    "since" => $this->convertToUTC($since)
                 ]
             ]);
+
             $newCommits = json_decode($response->getBody()->getContents(), true);
             $commits = array_merge($commits, $newCommits);
             $page++;
