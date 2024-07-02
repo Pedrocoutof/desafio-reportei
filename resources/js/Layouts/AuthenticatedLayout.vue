@@ -32,7 +32,7 @@ const toggleDark = useToggle(isDark)
 
                             <div class="shrink-0 flex items-center">
                                 <Link :href="route('dashboard')">
-                                    <div class="block text-2xl w-auto font-light fill-current text-gray-800 dark:text-gray-200">
+                                    <div class="block text-2xl w-auto font-light fill-current text-gray-600 dark:text-gray-200">
                                         Desafio Reportei
                                     </div>
 
@@ -70,9 +70,9 @@ const toggleDark = useToggle(isDark)
                                             >
                                                 <div class="flex items-center gap-4 text-start px-1.5">
                                                     <img class="w-10 h-10 rounded-full" :src="$page.props.auth.user.avatar" alt="">
-                                                    <div class="font-medium dark:text-white">
+                                                    <div class="font-medium text-gray-700 dark:text-white">
                                                         <div>{{ $page.props.auth.user.name }}</div>
-                                                        <div class="text-sm text-gray-500 dark:text-gray-500">{{ $page.props.auth.user.nickname }}</div>
+                                                        <div class="text-sm text-gray-400 dark:text-gray-500">{{ $page.props.auth.user.nickname }}</div>
                                                     </div>
                                                 </div>
 
