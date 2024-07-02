@@ -11,5 +11,6 @@ Route::get('/user', function (Request $request) {
 Route::get('/repositories', [GitHubController::class, 'getRepositories']);
 Route::get('/repository', [GitHubController::class, 'getRepository']);
 Route::get('/branches', [GitHubController::class, 'getAllBranches']);
-Route::get('/branches', [GitHubController::class, 'getBranch']);
 Route::get('/commits', [GitHubController::class, 'getAllCommits']);
+Route::get('/chart', [GitHubController::class, 'generateChart']);
+Route::get('/branches', [GitHubController::class, 'getBranch']);

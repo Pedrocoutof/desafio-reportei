@@ -106,17 +106,15 @@ class GitHubController extends Controller
                 // insere os commits
                 Commit::insert($bulkCommitData);
             });
-
         }
+        return response()->json([],200);
+    }
 
+    function generateChart(Request $request): \Illuminate\Http\JsonResponse{
+        $user = User::where('nickname', '=', $request->user)->first();
+        $repository = Repository::getRepository($user->id, $request->repository, ['commits']);
 
-        dd("Teste");
-
-
-        return response()->json([
-            "commits" => $response,
-            "total_commits" => count($response)
-        ]);
+        return response()->json($repository);
     }
 
 }

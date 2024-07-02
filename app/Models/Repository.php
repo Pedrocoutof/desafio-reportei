@@ -18,16 +18,17 @@ class Repository extends Model
     ];
 
     function owner() : BelongsTo {
-        return $this->belongsTo(User::class, 'owner_id');
+        return $this->belongsTo(User::class, 'owner', 'id');
     }
 
     function commits() : HasMany {
         return $this->HasMany(Commit::class);
     }
 
-    static function getRepository($userId, $repository): \Illuminate\Database\Eloquent\Builder|Model|null
+    static function getRepository($userId, $repository, $relationships = []): \Illuminate\Database\Eloquent\Builder|Model|null
     {
-        $repository = Repository::with(['owner'])
+        $relationships[] = 'owner';
+        $repository = Repository::with($relationships)
             ->where('owner', '=', $userId)
             ->where('name', '=', $repository)
             ->first();
