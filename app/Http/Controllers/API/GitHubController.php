@@ -3,41 +3,52 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
+use App\Services\GitHubService;
 use GuzzleHttp\Client;
 use Illuminate\Http\Request;
 
 class GitHubController extends Controller
 {
-    private string $urlbase = 'https://api.github.com/';
-    private Client $client;
+    protected GitHubService $githubService;
 
     public function __construct()
     {
-        $this->client = new Client();
+        $this->githubService = new GithubService();
     }
 
-    function getRepositories(Request $request) {
-        $client = new Client();
+    function getRepositories(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $user = $request->user;
 
-        if($request->user)
-            $response = $client->get($this->urlbase . "users/" . $request->user . "/repos");
-        else {
-            $response = $client->get($this->urlbase . "users/Pedrocoutof/repos");
+        if(!$user) {
+            $user = "Pedrocoutof";
         }
-        $repositories = json_decode($response->getBody()->getContents());
 
-        return response()->json($repositories);
+        $response = $this->githubService->getAllRepositories($user);
+        return response()->json($response);
     }
-
-
-    function getRepository(Request $request) {
-        $client = new Client();
-
-        $response = $client->get($this->urlbase . "repos/" . $request->user . "/" . $request->repository);
-
-        $repository = json_decode($response->getBody()->getContents());
-
-        return response()->json($repository);
+    function getRepository(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $response = $this->githubService->getRepository($request->user, $request->repository);
+        return response()->json($response);
+    }
+    function getAllBranches(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $response = $this->githubService->getAllBranches($request->user, $request->repository);
+        return response()->json($response);
+    }
+    function getBranch(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $response = $this->githubService->getBranch($request->user, $request->repository, $request->branch);
+        return response()->json($response);
+    }
+    function getAllCommits(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $response = $this->githubService->getAllCommits($request->user, $request->repository);
+        return response()->json([
+            "commits" => $response,
+            "total_commits" => count($response)
+        ]);
     }
 
 }
