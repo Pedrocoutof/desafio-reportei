@@ -3,6 +3,59 @@ import { onMounted } from 'vue';
 import Chart from 'chart.js/auto';
 import 'chartjs-adapter-date-fns';
 
+const obj = [
+    {
+        "Pedrocoutof": {
+            "2024-05-17": 4,
+            "2024-05-18": 2,
+            "2024-05-19": 10,
+            "2024-05-29": 1,
+            "2024-06-03": 1,
+            "2024-06-06": 1,
+            "2024-06-07": 9,
+            "2024-06-08": 1,
+            "2024-06-09": 2,
+            "2024-06-10": 4,
+            "2024-06-11": 1,
+            "2024-06-14": 1,
+            "2024-06-15": 2,
+            "2024-06-16": 7,
+            "2024-06-17": 3,
+            "2024-07-02": 2
+        },
+        "web-flow": {
+            "2024-05-19": 1
+        }
+    }
+];
+
+console.log(obj)
+function generateDateLabels(days) {
+    const labels = [];
+    const currentDate = new Date(); // Data atual
+    currentDate.setHours(0, 0, 0, 0); // Ajusta para meia-noite para evitar problemas com fuso horário
+
+    for (let i = 0; i < days; i++) {
+        const newDate = new Date(currentDate);
+        newDate.setDate(currentDate.getDate() + i);
+
+        const day = String(newDate.getDate()).padStart(2, '0');
+        const month = String(newDate.getMonth() + 1).padStart(2, '0'); // getMonth() retorna de 0 a 11
+        const year = newDate.getFullYear();
+
+        labels.push(`${day}-${month}-${year}`);
+    }
+
+    return labels;
+}
+function generateFakeData(number) {
+    let arr = [];
+    for (let i = 0; i < number ; i++) {
+        arr.push(Math.floor(Math.random() * 10))
+    }
+    return arr;
+}
+
 onMounted(() => {
     const formatThousands = (value) => Intl.NumberFormat('en-US', {
         maximumSignificantDigits: 3,
@@ -31,32 +84,30 @@ onMounted(() => {
     const chart = new Chart(ctx, {
         type: 'line',
         data: {
-            labels: [
-                '12-01-2020', '01-01-2021', '02-01-2021',
-                '03-01-2021', '04-01-2021', '05-01-2021',
-                '06-01-2021', '07-01-2021', '08-01-2021',
-                '09-01-2021', '10-01-2021', '11-01-2021',
-                '12-01-2021', '01-01-2022', '02-01-2022',
-                '03-01-2022', '04-01-2022', '05-01-2022',
-                '06-01-2022', '07-01-2022', '08-01-2022',
-                '09-01-2022', '10-01-2022', '11-01-2022',
-                '12-01-2022', '01-01-2023',
-            ],
+            labels: generateDateLabels(90),
             datasets: [
                 // Indigo line
                 {
                     label: 'Commits',
-                    data: [
-                        5000, 8700, 7500, 12000, 11000, 9500, 10500,
-                        10000, 15000, 9000, 10000, 7000, 22000, 7200,
-                        9800, 9000, 10000, 8000, 15000, 12000, 11000,
-                        13000, 11000, 15000, 17000, 18000,
-                    ],
+                    data: generateFakeData(90),
                     fill: true,
                     backgroundColor: 'rgba(59, 130, 246, 0.08)',
                     borderColor: 'rgb(99, 102, 241)',
                     borderWidth: 2,
-                    tension: 0,
+                    tension: 0.15,
+                    pointRadius: 0,
+                    pointHoverRadius: 3,
+                    pointBackgroundColor: 'rgb(99, 102, 241)',
+                },
+                // Indigo line
+                {
+                    label: 'Teste',
+                    data: generateFakeData(90),
+                    fill: true,
+                    backgroundColor: 'rgba(246,59,59,0.08)',
+                    borderColor: 'rgb(241,99,99)',
+                    borderWidth: 2,
+                    tension: 0.15,
                     pointRadius: 0,
                     pointHoverRadius: 3,
                     pointBackgroundColor: 'rgb(99, 102, 241)',
@@ -80,10 +131,10 @@ onMounted(() => {
                 x: {
                     type: 'time',
                     time: {
-                        parser: 'MM-dd-yyyy',
-                        unit: 'month',
+                        parser: 'dd-MM-yyyy',
+                        unit: 'day',
                         displayFormats: {
-                            month: 'MMM yy',
+                            day: 'dd MMM',
                         },
                     },
                     grid: {

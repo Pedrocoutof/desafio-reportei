@@ -8,6 +8,8 @@ use App\Models\Repository;
 use App\Models\User;
 use App\Services\GitHubService;
 use Carbon\Carbon;
+use DateTime;
+use DateTimeZone;
 use GuzzleHttp\Client;
 use http\Env\Response;
 use Illuminate\Http\Request;
@@ -62,7 +64,9 @@ class GitHubController extends Controller
 
             DB::transaction(function () use ($request, $repository, $user, $desynchronizedCommits) {
                 $bulkCommitData = array_map(function ($commit) use ($repository) {
-                    $commitDate = Carbon::parse($commit['commit']['author']['date'])->toDateTimeString();
+                    //$commitDate = Carbon::parse($commit['commit']['author']['date'])->toDateTimeString();
+                    $commitDate = $this->convertToTimezone($commit['commit']['author']['date'])->toDateTimeString();
+
                     return [
                         'sha'=> $commit['sha'],
                         'repository_id'=> $repository->id,
@@ -92,7 +96,8 @@ class GitHubController extends Controller
                 $createdRepository->save();
 
                 $bulkCommitData = array_map(function ($commit) use ($createdRepository) {
-                $commitDate = Carbon::parse($commit['commit']['author']['date'])->toDateTimeString();
+                //$commitDate = Carbon::parse($commit['commit']['author']['date'])->toDateTimeString();
+                    $commitDate = $this->convertToTimezone($commit['commit']['author']['date'], 'America/Sao_Paulo', 'Y-m-d H:i:s');
 
                     return [
                         'sha'=> $commit['sha'],
@@ -110,11 +115,88 @@ class GitHubController extends Controller
         return response()->json([],200);
     }
 
-    function generateChart(Request $request): \Illuminate\Http\JsonResponse{
+    function generateChart(Request $request, $since = null, $until = null): \Illuminate\Http\JsonResponse{
         $user = User::where('nickname', '=', $request->user)->first();
-        $repository = Repository::getRepository($user->id, $request->repository, ['commits']);
+        $repository = Repository::getCommitsGrouped($user->id, $request->repository);
 
-        return response()->json($repository);
+        // Geração das labels
+        $now = Carbon::now('GMT-3');
+
+        $since = $since ? Carbon::createFromFormat('Y-m-d', $since) : $now->copy()->subDays(90);
+        $until = $until ? Carbon::createFromFormat('Y-m-d', $until) : $now->copy();
+
+        $label = [];
+        $currentDate = $since->copy();
+        while ($currentDate <= $until) {
+            $label[] = $currentDate->toDateString();
+            $currentDate->addDay();
+        }
+        $data = $this->transformCommits($repository->commits, $since, $until);
+
+        return response()->json([
+            //"labels" =>$label,
+            //"now" => $now->format('Y-m-d'),
+            //"since" => $since->format('Y-m-d'),
+            //"until" => $until->format('Y-m-d'),
+            $data,
+            //$repository
+        ]);
     }
 
+    private function convertToTimezone($date, $timezone = 'America/Sao_Paulo', $format='Y-m-d\TH:i:sP') {
+        $datetime = new DateTime($date, new DateTimeZone('UTC'));
+        $datetime->setTimezone(new DateTimeZone($timezone));
+        return $datetime->format($format);
+    }
+
+    function transformCommits($commits, $since, $until) {
+        $datasets = [];
+
+        // Inicializar ['author_name']
+        foreach ($commits as $commit) {
+            $author = $commit->author_name;
+            if (!isset($datasets[$author])) {
+                $datasets[$author] = [];
+            }
+        }
+
+        // Preenche commits por autor para cada dia no intervalo
+        $currentDate = clone $since;
+        while ($currentDate <= $until) {
+            $dateStr = $currentDate->format('Y-m-d');
+            foreach ($datasets as $author => &$data) {
+                // Procurar commits para o autor e data atual
+                $found = false;
+                foreach ($commits as $commit) {
+                    if ($commit->author_name === $author && $commit->created_at_date === $dateStr) {
+                        $data[] = $commit->number_commits;
+                        $found = true;
+                        break;
+                    }
+                }
+                if (!$found) {
+                    $data[] = 0;
+                }
+            }
+            $currentDate->addDay();
+        }
+
+        $chartDatasets = [];
+        foreach ($datasets as $author => $data) {
+            $chartDatasets[] = [
+                'label' => $author,
+                'data' => $data,
+                'fill' => true,
+                'backgroundColor' => 'rgba(59, 130, 246, 0.08)',
+                'borderColor' => 'rgb(99, 102, 241)',
+                'borderWidth' => 2,
+                'tension' => 0.15,
+                'pointRadius' => 0,
+                'pointHoverRadius' => 3,
+                'pointBackgroundColor' => 'rgb(99, 102, 241)',
+            ];
+        }
+
+        return $chartDatasets;
+    }
 }
