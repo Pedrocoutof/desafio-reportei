@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->foreignId('owner')->constrained('users');
-            $table->timestamp('last_synced');
+            $table->timestamp('last_synced')->default('1970-01-01 00:00:00');
         });
     }
 

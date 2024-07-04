@@ -57,12 +57,13 @@ class GitHubService
         return json_decode($response->getBody()->getContents());
     }
 
-    function getAllCommits($user, $repo, $since = "1970-01-01", $perPage = 30, )
+    function getAllCommits($user, $repo, $since, $perPage = 30, )
     {
         $url = "{$this->baseUrl}/repos/{$user}/{$repo}/commits";
         $commits = [];
         $page = 1;
 
+        $since ?? $since = '1970-01-01';
 
         do {
             $response = $this->request('GET', $url, [
@@ -72,12 +73,10 @@ class GitHubService
                     "since" => $this->convertToUTC($since)
                 ]
             ]);
-
             $newCommits = json_decode($response->getBody()->getContents(), true);
             $commits = array_merge($commits, $newCommits);
             $page++;
         } while (count($newCommits) === $perPage);
-
         return $commits;
     }
 
