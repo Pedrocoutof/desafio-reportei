@@ -1,35 +1,17 @@
 <script setup>
-import { onMounted } from 'vue';
+import {ref, watch, onMounted, onBeforeUnmount} from 'vue';
 import Chart from 'chart.js/auto';
 import 'chartjs-adapter-date-fns';
 
-const obj = [
-    {
-        "Pedrocoutof": {
-            "2024-05-17": 4,
-            "2024-05-18": 2,
-            "2024-05-19": 10,
-            "2024-05-29": 1,
-            "2024-06-03": 1,
-            "2024-06-06": 1,
-            "2024-06-07": 9,
-            "2024-06-08": 1,
-            "2024-06-09": 2,
-            "2024-06-10": 4,
-            "2024-06-11": 1,
-            "2024-06-14": 1,
-            "2024-06-15": 2,
-            "2024-06-16": 7,
-            "2024-06-17": 3,
-            "2024-07-02": 2
-        },
-        "web-flow": {
-            "2024-05-19": 1
-        }
+const props = defineProps({
+    chartDataset: {
+        type: Array,
+        required: true
     }
-];
+});
 
-console.log(obj)
+const chartInstance = ref(null);
+
 function generateDateLabels(days) {
     const labels = [];
     const currentDate = new Date(); // Data atual
@@ -48,15 +30,8 @@ function generateDateLabels(days) {
 
     return labels;
 }
-function generateFakeData(number) {
-    let arr = [];
-    for (let i = 0; i < number ; i++) {
-        arr.push(Math.floor(Math.random() * 10))
-    }
-    return arr;
-}
 
-onMounted(() => {
+function createChart() {
     const formatThousands = (value) => Intl.NumberFormat('en-US', {
         maximumSignificantDigits: 3,
         notation: 'compact',
@@ -80,39 +55,12 @@ onMounted(() => {
     Chart.defaults.plugins.tooltip.cornerRadius = 4;
     Chart.defaults.plugins.tooltip.padding = 8;
 
-    const ctx = document.getElementById('chart');
-    const chart = new Chart(ctx, {
+    const ctx = document.getElementById('chart').getContext('2d');
+    chartInstance.value = new Chart(ctx, {
         type: 'line',
         data: {
             labels: generateDateLabels(90),
-            datasets: [
-                // Indigo line
-                {
-                    label: 'Commits',
-                    data: generateFakeData(90),
-                    fill: true,
-                    backgroundColor: 'rgba(59, 130, 246, 0.08)',
-                    borderColor: 'rgb(99, 102, 241)',
-                    borderWidth: 2,
-                    tension: 0.15,
-                    pointRadius: 0,
-                    pointHoverRadius: 3,
-                    pointBackgroundColor: 'rgb(99, 102, 241)',
-                },
-                // Indigo line
-                {
-                    label: 'Teste',
-                    data: generateFakeData(90),
-                    fill: true,
-                    backgroundColor: 'rgba(246,59,59,0.08)',
-                    borderColor: 'rgb(241,99,99)',
-                    borderWidth: 2,
-                    tension: 0.15,
-                    pointRadius: 0,
-                    pointHoverRadius: 3,
-                    pointBackgroundColor: 'rgb(99, 102, 241)',
-                },
-            ],
+            datasets: props.chartDataset,
         },
         options: {
             layout: {
@@ -170,12 +118,29 @@ onMounted(() => {
             maintainAspectRatio: false,
         },
     });
+}
+
+onMounted(() => {
+    createChart();
+});
+
+watch(() => props.chartDataset, (newDataset) => {
+    if (chartInstance.value) {
+        chartInstance.value.data.datasets = newDataset;
+        chartInstance.value.update();
+    }
+});
+
+onBeforeUnmount(() => {
+    if (chartInstance.value) {
+        chartInstance.value.destroy();
+    }
 });
 </script>
 
 <template>
     <!-- Chart widget -->
-    <div class="flex flex-col col-span-full xl:col-span-8 bg-white dark:bg-gray-800 rounded-xl shadow-2xl ">
+    <div class="flex flex-col col-span-full xl:col-span-8 bg-white dark:bg-gray-800 rounded-xl shadow-2xl">
         <div class="px-5 py-1">
             <div class="flex flex-wrap">
                 <!-- Total de commits -->
@@ -193,7 +158,7 @@ onMounted(() => {
                 <div class="flex items-center py-2">
                     <div class="mr-5">
                         <div class="flex items-center">
-                            <div class="text-3xl font-bold text-gray-800 mr-2  dark:text-gray-100">56.9K</div>
+                            <div class="text-3xl font-bold text-gray-800 mr-2 dark:text-gray-100">56.9K</div>
                             <div class="text-sm font-medium text-green-500">+7%</div>
                         </div>
                         <div class="text-sm text-gray-500 dark:text-gray-400">Total de commits</div>
@@ -218,7 +183,3 @@ onMounted(() => {
         </div>
     </div>
 </template>
-
-<style scoped>
-
-</style>

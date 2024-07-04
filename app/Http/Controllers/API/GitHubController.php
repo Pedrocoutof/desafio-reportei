@@ -116,8 +116,10 @@ class GitHubController extends Controller
     }
 
     function generateChart(Request $request, $since = null, $until = null): \Illuminate\Http\JsonResponse{
+        $this->getAllCommits($request);
+
         $user = User::where('nickname', '=', $request->user)->first();
-        $repository = Repository::getCommitsGrouped($user->id, $request->repository);
+        $repository = Repository::getCommitsGrouped($user->id, $request->get('repository'));
 
         // Geração das labels
         $now = Carbon::now('GMT-3');
@@ -133,14 +135,7 @@ class GitHubController extends Controller
         }
         $data = $this->transformCommits($repository->commits, $since, $until);
 
-        return response()->json([
-            //"labels" =>$label,
-            //"now" => $now->format('Y-m-d'),
-            //"since" => $since->format('Y-m-d'),
-            //"until" => $until->format('Y-m-d'),
-            $data,
-            //$repository
-        ]);
+        return response()->json($data);
     }
 
     private function convertToTimezone($date, $timezone = 'America/Sao_Paulo', $format='Y-m-d\TH:i:sP') {

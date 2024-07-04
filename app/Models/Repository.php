@@ -46,7 +46,6 @@ class Repository extends Model
     static function getCommitsGrouped($userId, $repository)
     {
         $repository = Repository::getRepository($userId, $repository);
-
         if ($repository) {
             $commits = DB::select('
             SELECT COUNT(*) AS number_commits, DATE(created_at) AS created_at_date , author_name
