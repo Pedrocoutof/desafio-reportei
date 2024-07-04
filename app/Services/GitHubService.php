@@ -10,26 +10,28 @@ use Illuminate\Support\Facades\Http;
 
 class GitHubService
 {
-    private $client;
-    private $baseUrl;
-    private $token;
+    private static $client;
+    private static $baseUrl;
+    private static $token;
 
-    public function __construct()
+    public static function init(): void
     {
-        $this->baseUrl = 'https://api.github.com';
-        $this->client = new Client();
-        $this->token = env('GITHUB_TOKEN');
+        self::$baseUrl = 'https://api.github.com';
+        self::$client = new Client();
+        self::$token = env('GITHUB_TOKEN');
     }
 
-    private function request($method, $url, $options = [])
+    private static function request($method, $url, $options = [])
     {
-        $options['headers']['Authorization'] = "token {$this->token}";
-        return $this->client->request($method, $url, $options);
+        $options['headers']['Authorization'] = "Bearer " . self::$token;
+        return self::$client->request($method, $url, $options);
     }
 
-    function getAllRepositories(string $user) {
-        $url = "{$this->baseUrl}/users/{$user}/repos";
-        $response = $this->request('GET', $url, [
+    public static function getAllRepositories(string $user)
+    {
+        self::init();
+        $url = self::$baseUrl . "/users/{$user}/repos";
+        $response = self::request('GET', $url, [
             'query' => [
                 'per_page' => 30,
             ]
@@ -37,40 +39,45 @@ class GitHubService
         return json_decode($response->getBody()->getContents());
     }
 
-    function getRepository(string $user, string $repository)
+    public static function getRepository(string $user, string $repository)
     {
-        $url = "{$this->baseUrl}/repos/{$user}/{$repository}";
-        $response = $this->request('GET', $url);
+        self::init();
+        $url = self::$baseUrl . "/repos/{$user}/{$repository}";
+        $response = self::request('GET', $url);
         return json_decode($response->getBody()->getContents());
     }
 
-    function getAllBranches(string $user, string $repository) {
-        $url = "{$this->baseUrl}/repos/{$user}/{$repository}/branches";
-        $response = $this->request('GET', $url);
+    public static function getAllBranches(string $user, string $repository)
+    {
+        self::init();
+        $url = self::$baseUrl . "/repos/{$user}/{$repository}/branches";
+        $response = self::request('GET', $url);
         return json_decode($response->getBody()->getContents());
     }
 
-    function getBranch($user, $repository, $branch)
+    public static function getBranch($user, $repository, $branch)
     {
-        $url = "{$this->baseUrl}/repos/{$user}/{$repository}/branches/{$branch}";
-        $response = $this->request('GET', $url);
+        self::init();
+        $url = self::$baseUrl . "/repos/{$user}/{$repository}/branches/{$branch}";
+        $response = self::request('GET', $url);
         return json_decode($response->getBody()->getContents());
     }
 
-    function getAllCommits($user, $repo, $since, $perPage = 30, )
+    public static function getAllCommits($user, $repo, $since, $perPage = 30)
     {
-        $url = "{$this->baseUrl}/repos/{$user}/{$repo}/commits";
+        self::init();
+        $url = self::$baseUrl . "/repos/{$user}/{$repo}/commits";
         $commits = [];
         $page = 1;
 
-        $since ?? $since = '1970-01-01';
+        $since = $since ?? '1970-01-01';
 
         do {
-            $response = $this->request('GET', $url, [
+            $response = self::request('GET', $url, [
                 "query" => [
                     "per_page" => $perPage,
                     "page" => $page,
-                    "since" => $this->convertToUTC($since)
+                    "since" => self::convertToUTC($since)
                 ]
             ]);
             $newCommits = json_decode($response->getBody()->getContents(), true);
@@ -80,7 +87,8 @@ class GitHubService
         return $commits;
     }
 
-    private function convertToUTC($date, $timezone = 'America/Sao_Paulo') {
+    private static function convertToUTC($date, $timezone = 'America/Sao_Paulo')
+    {
         $datetime = new DateTime($date, new DateTimeZone($timezone));
         $datetime->setTimezone(new DateTimeZone('UTC'));
         return $datetime->format('Y-m-d\TH:i:s\Z');
