@@ -42,10 +42,11 @@ class GitHubController extends Controller
     function generateChart(string $user, string $repository, string $since = null, string $until = null): CommitsToChartResourceCollection
     {
         $user = User::where('nickname', $user)->first();
-        $repository = RepositoryRepository::getRepository($user->id, $repository);
-        $repository = $repository ?? RepositoryRepository::create($repository->name, $user->id); // Caso não tenha encontrado um repositório, cria um
 
-        RepositoryRepository::syncCommits($repository); // Sincroniza os commits
+        $repository = RepositoryRepository::getRepository($user->id, $repository)
+                      ?? RepositoryRepository::create($repository, $user->id);
+
+        RepositoryRepository::syncCommits($repository);
         $commits = CommitView::where('repository_id', $repository->id)->get();
 
         return CommitsToChartResourceCollection::make($commits)->since($since)->until($until);
