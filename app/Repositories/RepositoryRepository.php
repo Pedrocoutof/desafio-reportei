@@ -3,9 +3,11 @@
 namespace App\Repositories;
 use App\Models\Commit;
 use App\Models\Repository;
+use App\Services\GitHubService;
 use Carbon\Carbon;
 use DateTime;
 use DateTimeZone;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 
 class RepositoryRepository
@@ -58,4 +60,22 @@ class RepositoryRepository
         return $datetime->format('Y-m-d H:i:s');
     }
 
+    static public function syncCommits(Repository $repository): \Illuminate\Http\JsonResponse
+    {
+        $owner = $repository->owner()->first();
+        $desynchronizedCommits = GitHubService::getAllCommits($owner->nickname, $repository->name, $repository->last_synced);
+        RepositoryRepository::addCommits($repository->id, $desynchronizedCommits);
+        return response()->json([], 200);
+    }
+
+    static function getRepository($userId, $repository, $relationships = []): \Illuminate\Database\Eloquent\Builder|Model|null
+    {
+        $relationships[] = 'owner';
+        $repository = Repository::with($relationships)
+            ->where('owner', '=', $userId)
+            ->where('name', '=', $repository)
+            ->first();
+
+        return $repository ?? null;
+    }
 }
