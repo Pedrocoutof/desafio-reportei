@@ -3,6 +3,9 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\CommitsToChartResource;
+use App\Http\Resources\CommitsToChartResourceCollection;
+use App\Models\CommitView;
 use App\Models\Repository;
 use App\Models\User;
 use App\Repositories\RepositoryRepository;
@@ -36,43 +39,39 @@ class GitHubController extends Controller
         return response()->json($response);
     }
 
-    function getAllCommits(Request $request): \Illuminate\Http\JsonResponse
+    function syncCommits($user, $repository): \Illuminate\Http\JsonResponse
     {
-        $user = User::where('nickname', '=', $request->user)->first();
-        $repo = GitHubService::getRepository($request->user, $request->repository);
-        $repository = Repository::getRepository($user->id, $request->repository);
+        $user = User::where('nickname', '=', $user)->first();
+        $repo = GitHubService::getRepository($user->nickname, $repository);
+        $repository = Repository::getRepository($user->id, $repository);
 
         if (!$repository) {
             $repository = RepositoryRepository::create($repo->name, $user->id);
         }
 
-        $desynchronizedCommits = GitHubService::getAllCommits($request->user, $repo->name, $repository->last_synced);
+        $desynchronizedCommits = GitHubService::getAllCommits($user->nickname, $repo->name, $repository->last_synced);
 
         RepositoryRepository::addCommits($repository->id, $desynchronizedCommits);
 
         return response()->json([], 200);
     }
 
-    function generateChart(Request $request, $since = null, $until = null): \Illuminate\Http\JsonResponse
+    function generateChart(string $user, string $repository, string $since = null, string $until = null): \Illuminate\Http\JsonResponse
     {
-        $this->getAllCommits($request);
+        $this->syncCommits($user, $repository);
+        
+        $user = User::where('nickname', '=', $user)->first();
+        $repository = Repository::getCommitsGrouped($user->id, $repository);
 
-        $user = User::where('nickname', '=', $request->user)->first();
-        $repository = Repository::getCommitsGrouped($user->id, $request->get('repository'));
+        $commits = CommitView::where('repository_id', $repository->id)->get();
 
-        // Geração das labels
-        $now = Carbon::now('GMT-3');
+        $return = CommitsToChartResourceCollection::make($commits)->since($since)->until($until);
 
-        $since = $since ? Carbon::createFromFormat('Y-m-d', $since) : $now->copy()->subDays(90);
-        $until = $until ? Carbon::createFromFormat('Y-m-d', $until) : $now->copy();
 
-        $label = [];
-        $currentDate = $since->copy();
-        while ($currentDate <= $until) {
-            $label[] = $currentDate->toDateString();
-            $currentDate->addDay();
-        }
-        $data = $this->transformCommits($repository->commits, $since, $until);
+        //$return = $this->transformCommits($repository->commits, $since, $until);
+        return response()->json($return);
+
+        $data = $this->transformCommits($repository->commits);
 
         return response()->json($data);
     }
