@@ -197,7 +197,7 @@ async function createChart()  {
                                 </select>
                                 <CircleLoading v-if="loadingCommitData"></CircleLoading>
                                 <RefreshButton @click="updateRepositories"></RefreshButton>
-                                <button @click="generateInsights" type="button" :disabled="!selectedRepository" class="mx-2 disabled:pointer-events-none disabled:dark:bg-green-900 disabled:bg-green-400 focus:outline-none text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800">Gerar Insights</button>
+                                <button @click="generateInsights" type="button" :disabled="!selectedRepository || loadingCommitData" class="mx-2 disabled:pointer-events-none disabled:dark:bg-green-900 disabled:bg-green-400 focus:outline-none text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800">Gerar Insights</button>
                             </div>
                         </form>
                     </div>
