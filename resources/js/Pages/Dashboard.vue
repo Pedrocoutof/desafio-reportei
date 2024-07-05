@@ -220,7 +220,7 @@ async function createChart()  {
                             <div v-if="chartDataset" class="ml-auto flex items-center py-2">
                                 <div class="mr-5">
                                     <div class="flex items-center">
-                                        <div class="text-3xl font-bold text-gray-800 mr-2 dark:text-gray-100">06/05 - 05/07</div>
+                                        <div class="text-3xl font-bold text-gray-800 mr-2 dark:text-gray-100">{{ chartDataset.since }} - {{ chartDataset.until }}</div>
                                     </div>
                                     <div class="text-sm text-gray-500 dark:text-gray-400 text-end">Período analisado</div>
                                 </div>

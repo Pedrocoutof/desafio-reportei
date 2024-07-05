@@ -83,6 +83,8 @@ class CommitsToChartResourceCollection extends ResourceCollection
             "totalContributors" => count($result),
             "avgCommitsContributor" => $totalCommits/count($result),
             "avgCommitsDay" => number_format($totalCommits/count($dates), 2),
+            "since" => $this->since->format('d/m'),
+            "until" => $this->until->format('d/m'),
         ];
     }
 }
