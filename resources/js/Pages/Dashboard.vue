@@ -12,7 +12,7 @@ const loadingRepositories = ref(false);
 const loadingCommitData = ref(false);
 const { props } = usePage();
 
-const chartDataSet = ref([]);
+const chartDataset = ref([]);
 const chartKey = ref(0);
 
 async function getRepositories() {
@@ -36,8 +36,8 @@ async function generateInsights() {
         const response = await axios.get("http://127.0.0.1:8000/api/chart/" + props.auth.user.nickname + "/"+ selectedRepository.value);
 
         if (response.status === 200) {
-            chartDataSet.value = response.data;
-            console.log(chartDataSet.value)
+            chartDataset.value = response.data;
+            console.log(chartDataset.value)
             chartKey.value++;
         }
     } catch (error) {
@@ -107,10 +107,10 @@ watch(selectedRepository, () => {
             </div>
         </div>
 
-        <div v-if="chartDataSet.length" class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+        <div v-if="chartDataset.data" class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900 dark:text-gray-100">
-                    <Chart :key="chartKey" :chartDataset="chartDataSet"></Chart>
+                    <Chart :key="chartKey" :chartDataset="chartDataset"></Chart>
                 </div>
             </div>
         </div>

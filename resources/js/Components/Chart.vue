@@ -5,33 +5,15 @@ import 'chartjs-adapter-date-fns';
 
 const props = defineProps({
     chartDataset: {
-        type: Array,
-        required: true
+        type: Object,
+        required: false
     }
 });
 
 const chartInstance = ref(null);
 
-function generateDateLabels(days) {
-    const labels = [];
-    const currentDate = new Date(); // Data atual
-    currentDate.setHours(0, 0, 0, 0); // Ajusta para meia-noite para evitar problemas com fuso horário
-
-    for (let i = 0; i < days; i++) {
-        const newDate = new Date(currentDate);
-        newDate.setDate(currentDate.getDate() + i);
-
-        const day = String(newDate.getDate()).padStart(2, '0');
-        const month = String(newDate.getMonth() + 1).padStart(2, '0'); // getMonth() retorna de 0 a 11
-        const year = newDate.getFullYear();
-
-        labels.push(`${day}-${month}-${year}`);
-    }
-
-    return labels;
-}
-
 function createChart() {
+
     const formatThousands = (value) => Intl.NumberFormat('en-US', {
         maximumSignificantDigits: 3,
         notation: 'compact',
@@ -59,8 +41,8 @@ function createChart() {
     chartInstance.value = new Chart(ctx, {
         type: 'line',
         data: {
-            labels: generateDateLabels(90),
-            datasets: props.chartDataset,
+            labels: props.chartDataset.data.labels,
+            datasets: props.chartDataset.data.datasets,
         },
         options: {
             layout: {
@@ -79,7 +61,7 @@ function createChart() {
                 x: {
                     type: 'time',
                     time: {
-                        parser: 'dd-MM-yyyy',
+                        parser: 'yyyy-MM-dd',
                         unit: 'day',
                         displayFormats: {
                             day: 'dd MMM',
@@ -140,7 +122,7 @@ onBeforeUnmount(() => {
 
 <template>
     <!-- Chart widget -->
-    <div class="flex flex-col col-span-full xl:col-span-8 bg-white dark:bg-gray-800 rounded-xl shadow-2xl">
+    <div v-if="chartDataset" class="flex flex-col col-span-full xl:col-span-8 bg-white dark:bg-gray-800 rounded-xl shadow-2xl">
         <div class="px-5 py-1">
             <div class="flex flex-wrap">
                 <!-- Total de commits -->
