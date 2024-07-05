@@ -6,6 +6,8 @@ import { usePage } from '@inertiajs/vue3';
 import { onMounted, ref, watch } from "vue";
 import CircleLoading from "@/Components/CircleLoading.vue";
 import RefreshButton from "@/Components/RefreshButton.vue";
+import Chart from 'chart.js/auto';
+import 'chartjs-adapter-date-fns';
 
 const userRepositories = ref();
 const selectedRepository = ref(null);
@@ -13,8 +15,8 @@ const loadingRepositories = ref(false);
 const loadingCommitData = ref(false);
 const { props } = usePage();
 
-const chartDataset = ref([]);
-const chartKey = ref(0);
+const chartDataset = ref(null);
+const chartCanvas = ref(null);
 
 async function getRepositories() {
     loadingRepositories.value = true;
@@ -29,34 +31,112 @@ async function getRepositories() {
     }
     loadingRepositories.value = false;
 }
+function updateRepositories() {
+    console.log("Implementar")
+}
 
 async function generateInsights() {
     loadingCommitData.value = true;
 
     try {
-        const response = await axios.get("http://127.0.0.1:8000/api/chart/" + props.auth.user.nickname + "/"+ selectedRepository.value);
+        let response = await axios.get("http://127.0.0.1:8000/api/chart/" + props.auth.user.nickname + "/"+ selectedRepository.value);
 
         if (response.status === 200) {
-            chartDataset.value = response.data;
-            console.log(chartDataset.value)
-            chartKey.value++;
+            console.log(response.data.data)
+            chartDataset.value = response.data.data;
         }
     } catch (error) {
         console.error("Error fetching chart data:", error);
     }
 
+    await createChart();
     loadingCommitData.value = false;
 }
 
 onMounted(async () => {
     await getRepositories();
+    createChart()
 });
 
-watch(selectedRepository, () => {
-    if (selectedRepository.value) {
-        generateInsights();
+const formatThousands = (value) => Intl.NumberFormat('en-US', {
+    maximumSignificantDigits: 3,
+    notation: 'compact',
+}).format(value);
+
+async function createChart()  {
+
+    if (chartDataset.value) {
+        const ctx = await document.getElementById('chart').getContext('2d');
+
+        if(chartCanvas.value) {
+            chartCanvas.value.destroy();
+        }
+        chartCanvas.value = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: chartDataset.value.labels,
+                datasets: chartDataset.value.datasets
+            },
+            options: {
+                layout: {
+                    padding: 20,
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            drawBorder: false,
+                        },
+                        ticks: {
+                            callback: (value) => formatThousands(value),
+                        },
+                    },
+                    x: {
+                        type: 'time',
+                        time: {
+                            parser: 'yyyy-MM-dd',
+                            unit: 'day',
+                            displayFormats: {
+                                day: 'dd MM',
+                            },
+                        },
+                        grid: {
+                            display: false,
+                            drawBorder: false,
+                        },
+                        ticks: {
+                            autoSkipPadding: 48,
+                            maxRotation: 0,
+                        },
+                    },
+                },
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        align: 'end',
+                        display: true,
+                        labels: {
+                            color: 'rgb(99, 102, 241)'
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            title: () => false,
+                            label: (context) => formatThousands(context.parsed.y),
+                        },
+                    },
+                },
+                interaction: {
+                    intersect: false,
+                    mode: 'nearest',
+                },
+                maintainAspectRatio: false,
+            },
+        });
     }
-});
+}
+
+
 </script>
 
 <template>
@@ -76,7 +156,7 @@ watch(selectedRepository, () => {
                             <div class="flex items-center">
 
                                 <div class="relative z-10 flex-shrink-0">
-                                    <button id="states-button" data-dropdown-toggle="dropdown-states" class="inline-flex items-center py-2.5 px-4 text-sm font-medium text-center text-gray-500 bg-gray-100 border border-gray-300 rounded-l-lg hover:bg-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600 dark:focus:ring-gray-700 dark:text-gray-300 dark:border-gray-600" type="button">
+                                    <button id="states-button" data-dropdown-toggle="dropdown-states" class="inline-flex items-center py-2.5 px-4 text-sm font-medium text-center text-gray-500 bg-gray-100 border border-gray-300 rounded-l-lg hover:bg-gray-200 focus:outline-none focus:ring-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600 dark:focus:ring-gray-700 dark:text-gray-300 dark:border-gray-600" type="button">
                                         {{ $page.props.auth.user.nickname }} /
                                     </button>
                                     <div id="dropdown-org" class="absolute mt-2 hidden bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700">
@@ -94,7 +174,7 @@ watch(selectedRepository, () => {
                                     <option class="text-sm text-gray-600" v-for="repository in userRepositories" :key="repository.name" :value="repository.name">{{ repository.name }}</option>
                                 </select>
                                 <CircleLoading v-if="loadingCommitData"></CircleLoading>
-                                <RefreshButton></RefreshButton>
+                                <RefreshButton @click="updateRepositories"></RefreshButton>
                                 <button @click="generateInsights" type="button" :disabled="!selectedRepository" class="mx-2 disabled:pointer-events-none disabled:dark:bg-green-900 disabled:bg-green-400 focus:outline-none text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800">Gerar Insights</button>
                             </div>
                         </form>
@@ -103,51 +183,53 @@ watch(selectedRepository, () => {
             </div>
         </div>
 
-        <div v-if="chartDataset.data" class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+        <div :hidden="!chartDataset" class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900 dark:text-gray-100">
-                    <!-- Chart widget -->
-                    <div v-if="chartDataset" class="flex flex-col col-span-full xl:col-span-8 bg-white dark:bg-gray-800 rounded-xl shadow-2xl">
-                        <div class="px-5 py-1">
-                            <div class="flex flex-wrap">
-                                <!-- Total de commits -->
-                                <div class="flex items-center py-2">
-                                    <div class="mr-5">
-                                        <div class="flex items-center">
-                                            <div class="text-3xl font-bold text-gray-800 mr-2 dark:text-gray-100">24.7K</div>
-                                            <div class="text-sm font-medium text-green-500">+49%</div>
-                                        </div>
-                                        <div class="text-sm text-gray-500 dark:text-gray-400">Colaboradores</div>
+                    <div class="px-5 py-1">
+                        <div class="flex flex-wrap">
+                            <!-- Total de commits -->
+                            <div v-if="chartDataset" class="flex items-center py-2">
+                                <div class="mr-5">
+                                    <div class="flex items-center">
+                                        <div class="text-3xl font-bold text-gray-800 mr-2 dark:text-gray-100">{{ chartDataset.totalContributors }}</div>
                                     </div>
-                                    <div class="hidden md:block w-px h-8 bg-gray-200 dark:bg-gray-800 mr-5" aria-hidden="true"></div>
+                                    <div class="text-sm text-gray-500 dark:text-gray-400">Colaboradores</div>
                                 </div>
-                                <!-- Total Pageviews -->
-                                <div class="flex items-center py-2">
-                                    <div class="mr-5">
-                                        <div class="flex items-center">
-                                            <div class="text-3xl font-bold text-gray-800 mr-2 dark:text-gray-100">56.9K</div>
-                                            <div class="text-sm font-medium text-green-500">+7%</div>
-                                        </div>
-                                        <div class="text-sm text-gray-500 dark:text-gray-400">Total de commits</div>
+                                <div class="hidden md:block w-px h-8 bg-gray-200 dark:bg-gray-800 mr-5" aria-hidden="true"></div>
+                            </div>
+                            <!-- Total de commits -->
+                            <div v-if="chartDataset" class="flex items-center py-2">
+                                <div class="mr-5">
+                                    <div class="flex items-center">
+                                        <div class="text-3xl font-bold text-gray-800 mr-2 dark:text-gray-100">{{ chartDataset.totalCommits }}</div>
                                     </div>
-                                    <div class="hidden md:block w-px h-8 bg-gray-200 dark:bg-gray-800 mr-5" aria-hidden="true"></div>
+                                    <div class="text-sm text-gray-500 dark:text-gray-400">Total de commits</div>
                                 </div>
-                                <!-- Media commits/colborador -->
-                                <div class="flex items-center py-2">
-                                    <div class="mr-5">
-                                        <div class="flex items-center">
-                                            <div class="text-3xl font-bold text-gray-800 mr-2 dark:text-gray-100">54%</div>
-                                            <div class="text-sm font-medium text-yellow-500">-7%</div>
-                                        </div>
-                                        <div class="text-sm text-gray-500 dark:text-gray-400">Média de commits/colaborador</div>
+                                <div class="hidden md:block w-px h-8 bg-gray-200 dark:bg-gray-800 mr-5" aria-hidden="true"></div>
+                            </div>
+                            <!-- Media commits/colborador -->
+                            <div v-if="chartDataset" class="flex items-center py-2">
+                                <div class="mr-5">
+                                    <div class="flex items-center">
+                                        <div class="text-3xl font-bold text-gray-800 mr-2 dark:text-gray-100">{{ chartDataset.avgCommitsContributor }}</div>
                                     </div>
+                                    <div class="text-sm text-gray-500 dark:text-gray-400">Média de commits/colaborador</div>
+                                </div>
+                            </div>
+                            <div v-if="chartDataset" class="ml-auto flex items-center py-2">
+                                <div class="mr-5">
+                                    <div class="flex items-center">
+                                        <div class="text-3xl font-bold text-gray-800 mr-2 dark:text-gray-100">06/05 - 05/07</div>
+                                    </div>
+                                    <div class="text-sm text-gray-500 dark:text-gray-400 text-end">Período analisado</div>
                                 </div>
                             </div>
                         </div>
+                    </div>
 
-                        <div class="flex-grow">
-                            <canvas class="bg-white dark:bg-gray-800" id="chart" width="800" height="300"></canvas>
-                        </div>
+                    <div class="flex-grow">
+                        <canvas class="bg-white dark:bg-gray-800" id="chart" width="800" height="300"></canvas>
                     </div>
                 </div>
             </div>

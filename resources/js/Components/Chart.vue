@@ -13,6 +13,9 @@ const props = defineProps({
 const chartInstance = ref(null);
 
 function createChart() {
+    if (chartInstance.value instanceof Chart) {
+        chartInstance.value.destroy();
+    }
 
     const formatThousands = (value) => Intl.NumberFormat('en-US', {
         maximumSignificantDigits: 3,
@@ -107,17 +110,16 @@ onMounted(() => {
 });
 
 watch(() => props.chartDataset, (newDataset) => {
-    if (chartInstance.value) {
-        chartInstance.value.data.datasets = newDataset;
-        chartInstance.value.update();
-    }
+    chartInstance.value = newDataset
+    createChart();
 });
 
 onBeforeUnmount(() => {
-    if (chartInstance.value) {
+    if (chartInstance.value instanceof Chart) {
         chartInstance.value.destroy();
     }
 });
+
 </script>
 
 <template>
