@@ -55,6 +55,25 @@ async function generateInsights() {
 
 onMounted(async () => {
     await getRepositories();
+
+    Chart.defaults.font.family = '"Inter", sans-serif';
+    Chart.defaults.font.weight = '500';
+    Chart.defaults.color = 'rgb(148, 163, 184)';
+    Chart.defaults.scale.grid.color = 'rgba(140,140,140,0.45)';
+    Chart.defaults.plugins.tooltip.titleColor = 'rgb(30, 41, 59)';
+    Chart.defaults.plugins.tooltip.bodyColor = 'rgb(30, 41, 59)';
+    Chart.defaults.plugins.tooltip.backgroundColor = '#FFF';
+    Chart.defaults.plugins.tooltip.borderWidth = 0.5;
+    Chart.defaults.plugins.tooltip.borderColor = 'rgb(226, 232, 240)';
+    Chart.defaults.plugins.tooltip.displayColors = false;
+    Chart.defaults.plugins.tooltip.mode = 'nearest';
+    Chart.defaults.plugins.tooltip.intersect = false;
+    Chart.defaults.plugins.tooltip.position = 'nearest';
+    Chart.defaults.plugins.tooltip.caretSize = 0;
+    Chart.defaults.plugins.tooltip.caretPadding = 20;
+    Chart.defaults.plugins.tooltip.cornerRadius = 4;
+    Chart.defaults.plugins.tooltip.padding = 8;
+
     createChart()
 });
 
@@ -121,8 +140,11 @@ async function createChart()  {
                     },
                     tooltip: {
                         callbacks: {
-                            title: () => false,
-                            label: (context) => formatThousands(context.parsed.y),
+                            title: (context) => {
+                                const date = new Date(context[0].parsed.x);
+                                return date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+                            },
+                            label: (context) => "Commits: " + formatThousands(context.parsed.y),
                         },
                     },
                 },
