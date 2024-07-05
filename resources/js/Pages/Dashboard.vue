@@ -4,7 +4,8 @@ import { Head } from '@inertiajs/vue3';
 import axios from "axios";
 import { usePage } from '@inertiajs/vue3';
 import { onMounted, ref, watch } from "vue";
-import Chart from "@/Components/Chart.vue";
+import CircleLoading from "@/Components/CircleLoading.vue";
+import RefreshButton from "@/Components/RefreshButton.vue";
 
 const userRepositories = ref();
 const selectedRepository = ref(null);
@@ -89,16 +90,11 @@ watch(selectedRepository, () => {
                                     </div>
                                 </div>
 
-                                <select :disabled="loadingRepositories" v-model="selectedRepository" id="countries" class="flex-1 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-r-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+                                <select :disabled="loadingRepositories" v-model="selectedRepository" id="countries" class="flex-1 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-r-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 mr-2">
                                     <option class="text-sm text-gray-600" v-for="repository in userRepositories" :key="repository.name" :value="repository.name">{{ repository.name }}</option>
                                 </select>
-                                <div v-if="loadingCommitData" class="px-2" role="status">
-                                    <svg aria-hidden="true" class="w-8 h-8 text-gray-200 animate-spin dark:text-gray-600 fill-blue-600" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="currentColor"/>
-                                        <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentFill"/>
-                                    </svg>
-                                    <span class="sr-only">Carregando...</span>
-                                </div>
+                                <CircleLoading v-if="loadingCommitData"></CircleLoading>
+                                <RefreshButton></RefreshButton>
                                 <button @click="generateInsights" type="button" :disabled="!selectedRepository" class="mx-2 disabled:pointer-events-none disabled:dark:bg-green-900 disabled:bg-green-400 focus:outline-none text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800">Gerar Insights</button>
                             </div>
                         </form>
@@ -110,7 +106,49 @@ watch(selectedRepository, () => {
         <div v-if="chartDataset.data" class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900 dark:text-gray-100">
-                    <Chart :key="chartKey" :chartDataset="chartDataset"></Chart>
+                    <!-- Chart widget -->
+                    <div v-if="chartDataset" class="flex flex-col col-span-full xl:col-span-8 bg-white dark:bg-gray-800 rounded-xl shadow-2xl">
+                        <div class="px-5 py-1">
+                            <div class="flex flex-wrap">
+                                <!-- Total de commits -->
+                                <div class="flex items-center py-2">
+                                    <div class="mr-5">
+                                        <div class="flex items-center">
+                                            <div class="text-3xl font-bold text-gray-800 mr-2 dark:text-gray-100">24.7K</div>
+                                            <div class="text-sm font-medium text-green-500">+49%</div>
+                                        </div>
+                                        <div class="text-sm text-gray-500 dark:text-gray-400">Colaboradores</div>
+                                    </div>
+                                    <div class="hidden md:block w-px h-8 bg-gray-200 dark:bg-gray-800 mr-5" aria-hidden="true"></div>
+                                </div>
+                                <!-- Total Pageviews -->
+                                <div class="flex items-center py-2">
+                                    <div class="mr-5">
+                                        <div class="flex items-center">
+                                            <div class="text-3xl font-bold text-gray-800 mr-2 dark:text-gray-100">56.9K</div>
+                                            <div class="text-sm font-medium text-green-500">+7%</div>
+                                        </div>
+                                        <div class="text-sm text-gray-500 dark:text-gray-400">Total de commits</div>
+                                    </div>
+                                    <div class="hidden md:block w-px h-8 bg-gray-200 dark:bg-gray-800 mr-5" aria-hidden="true"></div>
+                                </div>
+                                <!-- Media commits/colborador -->
+                                <div class="flex items-center py-2">
+                                    <div class="mr-5">
+                                        <div class="flex items-center">
+                                            <div class="text-3xl font-bold text-gray-800 mr-2 dark:text-gray-100">54%</div>
+                                            <div class="text-sm font-medium text-yellow-500">-7%</div>
+                                        </div>
+                                        <div class="text-sm text-gray-500 dark:text-gray-400">Média de commits/colaborador</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex-grow">
+                            <canvas class="bg-white dark:bg-gray-800" id="chart" width="800" height="300"></canvas>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
