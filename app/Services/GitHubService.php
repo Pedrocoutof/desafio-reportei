@@ -27,16 +27,25 @@ class GitHubService
         return self::$client->request($method, $url, $options);
     }
 
-    public static function getAllRepositories(string $user)
+    public static function getAllRepositories(string $user, int $perPage = 30, int $page = 1): array
     {
         self::init();
         $url = self::$baseUrl . "/users/{$user}/repos";
-        $response = self::request('GET', $url, [
-            'query' => [
-                'per_page' => 30,
-            ]
-        ]);
-        return json_decode($response->getBody()->getContents());
+        $repositories = [];
+
+        do {
+            $response = self::request('GET', $url, [
+                "query" => [
+                    "per_page" => $perPage,
+                    "page" => $page,
+                ]
+            ]);
+            $newRepositories = json_decode($response->getBody()->getContents(), true);
+            $repositories = array_merge($repositories, $newRepositories);
+            $page++;
+        } while (count($newRepositories) === $perPage);
+
+        return $repositories;
     }
 
     public static function getRepository(string $user, string $repository)
