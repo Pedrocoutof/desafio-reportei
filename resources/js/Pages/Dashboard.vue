@@ -35,16 +35,11 @@ async function generateInsights() {
     loadingCommitData.value = true;
 
     try {
-        const response = await axios.get("http://127.0.0.1:8000/api/chart", {
-            params: {
-                user: props.auth.user.nickname,
-                repository: selectedRepository.value
-            }
-        });
+        const response = await axios.get("http://127.0.0.1:8000/api/chart/" + props.auth.user.nickname + "/"+ selectedRepository.value);
 
         if (response.status === 200) {
             chartDataSet.value = response.data;
-            // Update the chart key to force the chart to re-render
+            console.log(chartDataSet.value)
             chartKey.value++;
         }
     } catch (error) {
