@@ -50,10 +50,12 @@ class CommitsToChartResourceCollection extends ResourceCollection
             }
         }
 
+        $totalCommits = 0;
         foreach ($this->collection as $commit) {
             $author = $commit['author_name'];
             $date = $commit['created_at_date'];
             if (isset($data[$author][$date])) {
+                $totalCommits += $commit['number_commits'];
                 $data[$author][$date] += $commit['number_commits'];
             }
         }
@@ -77,6 +79,10 @@ class CommitsToChartResourceCollection extends ResourceCollection
         return [
             "datasets" => $result,
             "labels" => $dates,
+            "totalCommits" => $totalCommits,
+            "totalContributors" => count($result),
+            "avgCommitsContributor" => $totalCommits/count($result),
+            "avgCommitsDay" => number_format($totalCommits/count($dates), 2),
         ];
     }
 }
