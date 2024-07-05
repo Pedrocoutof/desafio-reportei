@@ -18,9 +18,7 @@ const chartKey = ref(0);
 async function getRepositories() {
     loadingRepositories.value = true;
     try {
-        const response = await axios.get("http://127.0.0.1:8000/api/repositories", {
-            params: { user: props.auth.user.nickname }
-        });
+        const response = await axios.get("http://127.0.0.1:8000/api/repositories/" + props.auth.user.nickname);
 
         if (response.status === 200) {
             userRepositories.value = response.data;

@@ -15,9 +15,9 @@ use Illuminate\Http\Request;
 
 class GitHubController extends Controller
 {
-    function getRepositories(Request $request): \Illuminate\Http\JsonResponse
+    function getRepositories(string $user): \Illuminate\Http\JsonResponse
     {
-        $response = GitHubService::getAllRepositories($request->user);
+        $response = GitHubService::getAllRepositories($user);
         return response()->json($response);
     }
 

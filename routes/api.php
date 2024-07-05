@@ -8,9 +8,10 @@ Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
-Route::get('/repositories', [GitHubController::class, 'getRepositories']);
+Route::get('/repositories/{user}', [GitHubController::class, 'getRepositories']);
+Route::get('/chart/{user}/{repository}', [GitHubController::class, 'generateChart']);
+
 Route::get('/repository', [GitHubController::class, 'getRepository']);
 Route::get('/branches', [GitHubController::class, 'getAllBranches']);
 Route::get('/commits', [GitHubController::class, 'getAllCommits']);
-Route::get('/chart/{user}/{repository}', [GitHubController::class, 'generateChart']);
-Route::get('/branches', [GitHubController::class, 'getBranch']);
+Route::get('/branch', [GitHubController::class, 'getBranch']);
