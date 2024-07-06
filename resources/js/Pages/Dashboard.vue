@@ -4,7 +4,6 @@ import { Head } from '@inertiajs/vue3';
 import { usePage } from '@inertiajs/vue3';
 import { onMounted, ref } from "vue";
 import CircleLoading from "@/Components/CircleLoading.vue";
-import RefreshButton from "@/Components/RefreshButton.vue";
 import Chart from 'chart.js/auto';
 import 'chartjs-adapter-date-fns';
 import InputSelect from "@/Components/InputSelect.vue";
