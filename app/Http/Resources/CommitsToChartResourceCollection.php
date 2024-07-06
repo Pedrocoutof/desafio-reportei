@@ -75,7 +75,7 @@ class CommitsToChartResourceCollection extends ResourceCollection
             "totalCommits" => $totalCommits,
             "totalContributors" => count($result),
             "avgCommitsContributor" => $totalCommits > 0 ? $totalCommits/count($result) : 0,
-            "avgCommitsDay" => $totalCommits > 0 ? number_format($totalCommits/count($dates), 2) : 0,
+            "avgCommitsDay" => $totalCommits > 0 ? number_format($totalCommits/count($dates), 2, ',') : 0,
             "since" => $this->since->format('d/m'),
             "until" => $this->until->format('d/m'),
         ];

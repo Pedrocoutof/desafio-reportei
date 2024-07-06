@@ -174,12 +174,13 @@ async function createChart()  {
                     <div class="p-6 text-gray-900 dark:text-gray-100">
                         <form class="max-w">
                             <label class="block mb-2 text-sm font-medium text-gray-600 dark:text-gray-200">Selecione um repositório:</label>
-                            <div class="flex items-center">
+                            <div class="flex flex-wrap items-center">
 
                                 <div class="relative z-10 flex-shrink-0">
-                                    <button class="inline-flex items-center py-2.5 px-4 text-sm font-medium text-center text-gray-500 bg-gray-100 border border-gray-300 rounded-l-lg hover:bg-gray-200 focus:outline-none focus:ring-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600 dark:focus:ring-gray-700 dark:text-gray-300 dark:border-gray-600" type="button">
+                                    <button class="hidden sm:inline-flex items-center py-2.5 px-4 text-sm font-medium text-center text-gray-500 bg-gray-100 border border-gray-300 rounded-l-lg hover:bg-gray-200 focus:outline-none focus:ring-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600 dark:focus:ring-gray-700 dark:text-gray-300 dark:border-gray-600" type="button">
                                         {{ $page.props.auth.user.nickname }} /
                                     </button>
+
                                     <div id="dropdown-org" class="absolute mt-2 hidden bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700">
                                         <ul class="py-2 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="states-button">
                                             <li>
@@ -192,7 +193,9 @@ async function createChart()  {
                                 </div>
                                 <InputSelect v-model="selectedRepository" :options="userRepositories" :disabled="loadingRepositories"></InputSelect>
                                 <CircleLoading v-if="loadingCommitData"></CircleLoading>
-                                <button @click="generateInsights" type="button" :disabled="!selectedRepository || loadingCommitData" class="mx-2 disabled:pointer-events-none disabled:dark:bg-green-900 disabled:bg-green-400 focus:outline-none text-white bg-green-600 hover:bg-green-700 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-green-700 dark:hover:bg-green-600 dark:focus:ring-green-800">Gerar Insights</button>
+                                <button @click="generateInsights" type="button" :disabled="!selectedRepository || loadingCommitData" class="w-full sm:w-auto mx-2 my-2 sm:my-0 disabled:pointer-events-none disabled:dark:bg-green-900 disabled:bg-green-400 focus:outline-none text-white bg-green-600 hover:bg-green-700 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-green-700 dark:hover:bg-green-600 dark:focus:ring-green-800">
+                                    Gerar Insights
+                                </button>
                             </div>
                         </form>
                     </div>
@@ -229,9 +232,9 @@ async function createChart()  {
                             <div v-if="chartDataset" class="flex items-center py-2">
                                 <div class="mr-5">
                                     <div class="flex items-center">
-                                        <div class="text-3xl font-bold text-gray-800 mr-2 dark:text-gray-200">{{ chartDataset.avgCommitsContributor }}</div>
+                                        <div class="text-3xl font-bold text-gray-800 mr-2 dark:text-gray-200">{{ chartDataset.avgCommitsDay }}</div>
                                     </div>
-                                    <div class="text-sm text-gray-500 dark:text-gray-400">Média de commits/colaborador</div>
+                                    <div class="text-sm text-gray-500 dark:text-gray-400">Média de commits por dia</div>
                                 </div>
                             </div>
                             <div v-if="chartDataset" class="ml-auto flex items-center py-2">
