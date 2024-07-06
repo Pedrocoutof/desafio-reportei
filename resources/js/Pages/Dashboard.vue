@@ -144,7 +144,6 @@ async function createChart()  {
                                 const date = new Date(context[0].parsed.x);
                                 return date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
                             },
-                            label: (context) => "Commits: " + formatThousands(context.parsed.y),
                         },
                     },
                 },
@@ -174,7 +173,7 @@ async function createChart()  {
                 <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="p-6 text-gray-900 dark:text-gray-100">
                         <form class="max-w">
-                            <label class="block mb-2 text-sm font-medium text-gray-600 dark:text-white">Selecione um repositório:</label>
+                            <label class="block mb-2 text-sm font-medium text-gray-600 dark:text-gray-200">Selecione um repositório:</label>
                             <div class="flex items-center">
 
                                 <div class="relative z-10 flex-shrink-0">
@@ -197,7 +196,7 @@ async function createChart()  {
                                 </select>
                                 <CircleLoading v-if="loadingCommitData"></CircleLoading>
                                 <RefreshButton @click="updateRepositories"></RefreshButton>
-                                <button @click="generateInsights" type="button" :disabled="!selectedRepository || loadingCommitData" class="mx-2 disabled:pointer-events-none disabled:dark:bg-green-900 disabled:bg-green-400 focus:outline-none text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800">Gerar Insights</button>
+                                <button @click="generateInsights" type="button" :disabled="!selectedRepository || loadingCommitData" class="mx-2 disabled:pointer-events-none disabled:dark:bg-green-900 disabled:bg-green-400 focus:outline-none text-white bg-green-600 hover:bg-green-700 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-green-700 dark:hover:bg-green-600 dark:focus:ring-green-800">Gerar Insights</button>
                             </div>
                         </form>
                     </div>
@@ -214,9 +213,9 @@ async function createChart()  {
                             <div v-if="chartDataset" class="flex items-center py-2">
                                 <div class="mr-5">
                                     <div class="flex items-center">
-                                        <div class="text-3xl font-bold text-gray-800 mr-2 dark:text-gray-100">{{ chartDataset.totalContributors }}</div>
+                                        <div class="text-3xl font-bold text-gray-800 mr-2 dark:text-gray-200">{{ chartDataset.totalContributors }}</div>
                                     </div>
-                                    <div class="text-sm text-gray-500 dark:text-gray-400">Colaboradores</div>
+                                    <div class="text-sm text-gray-500 dark:text-gray-400">Colaborador(es)</div>
                                 </div>
                                 <div class="hidden md:block w-px h-8 bg-gray-200 dark:bg-gray-800 mr-5" aria-hidden="true"></div>
                             </div>
@@ -224,7 +223,7 @@ async function createChart()  {
                             <div v-if="chartDataset" class="flex items-center py-2">
                                 <div class="mr-5">
                                     <div class="flex items-center">
-                                        <div class="text-3xl font-bold text-gray-800 mr-2 dark:text-gray-100">{{ chartDataset.totalCommits }}</div>
+                                        <div class="text-3xl font-bold text-gray-800 mr-2 dark:text-gray-200">{{ chartDataset.totalCommits }}</div>
                                     </div>
                                     <div class="text-sm text-gray-500 dark:text-gray-400">Total de commits</div>
                                 </div>
@@ -234,7 +233,7 @@ async function createChart()  {
                             <div v-if="chartDataset" class="flex items-center py-2">
                                 <div class="mr-5">
                                     <div class="flex items-center">
-                                        <div class="text-3xl font-bold text-gray-800 mr-2 dark:text-gray-100">{{ chartDataset.avgCommitsContributor }}</div>
+                                        <div class="text-3xl font-bold text-gray-800 mr-2 dark:text-gray-200">{{ chartDataset.avgCommitsContributor }}</div>
                                     </div>
                                     <div class="text-sm text-gray-500 dark:text-gray-400">Média de commits/colaborador</div>
                                 </div>
@@ -242,7 +241,7 @@ async function createChart()  {
                             <div v-if="chartDataset" class="ml-auto flex items-center py-2">
                                 <div class="mr-5">
                                     <div class="flex items-center">
-                                        <div class="text-3xl font-bold text-gray-800 mr-2 dark:text-gray-100">{{ chartDataset.since }} - {{ chartDataset.until }}</div>
+                                        <div class="text-3xl font-bold text-gray-800 mr-2 dark:text-gray-200">{{ chartDataset.since }} - {{ chartDataset.until }}</div>
                                     </div>
                                     <div class="text-sm text-gray-500 dark:text-gray-400 text-end">Período analisado</div>
                                 </div>
