@@ -8,6 +8,7 @@ import CircleLoading from "@/Components/CircleLoading.vue";
 import RefreshButton from "@/Components/RefreshButton.vue";
 import Chart from 'chart.js/auto';
 import 'chartjs-adapter-date-fns';
+import InputSelect from "@/Components/InputSelect.vue";
 
 const userRepositories = ref();
 const selectedRepository = ref(null);
@@ -170,14 +171,14 @@ async function createChart()  {
 
         <div class="py-12">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
+                <div class="bg-white dark:bg-gray-800 overflow-hidden sm:rounded-lg shadow-xl">
                     <div class="p-6 text-gray-900 dark:text-gray-100">
                         <form class="max-w">
                             <label class="block mb-2 text-sm font-medium text-gray-600 dark:text-gray-200">Selecione um repositório:</label>
                             <div class="flex items-center">
 
                                 <div class="relative z-10 flex-shrink-0">
-                                    <button id="states-button" data-dropdown-toggle="dropdown-states" class="inline-flex items-center py-2.5 px-4 text-sm font-medium text-center text-gray-500 bg-gray-100 border border-gray-300 rounded-l-lg hover:bg-gray-200 focus:outline-none focus:ring-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600 dark:focus:ring-gray-700 dark:text-gray-300 dark:border-gray-600" type="button">
+                                    <button class="inline-flex items-center py-2.5 px-4 text-sm font-medium text-center text-gray-500 bg-gray-100 border border-gray-300 rounded-l-lg hover:bg-gray-200 focus:outline-none focus:ring-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600 dark:focus:ring-gray-700 dark:text-gray-300 dark:border-gray-600" type="button">
                                         {{ $page.props.auth.user.nickname }} /
                                     </button>
                                     <div id="dropdown-org" class="absolute mt-2 hidden bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700">
@@ -190,10 +191,7 @@ async function createChart()  {
                                         </ul>
                                     </div>
                                 </div>
-
-                                <select :disabled="loadingRepositories" v-model="selectedRepository" id="countries" class="flex-1 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-r-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 mr-2">
-                                    <option class="text-sm text-gray-600 dark:text-gray-400" v-for="repository in userRepositories" :key="repository.name" :value="repository.name">{{ repository.name }}</option>
-                                </select>
+                                <InputSelect v-model="selectedRepository" :options="userRepositories" :disabled="loadingRepositories"></InputSelect>
                                 <CircleLoading v-if="loadingCommitData"></CircleLoading>
                                 <RefreshButton @click="updateRepositories"></RefreshButton>
                                 <button @click="generateInsights" type="button" :disabled="!selectedRepository || loadingCommitData" class="mx-2 disabled:pointer-events-none disabled:dark:bg-green-900 disabled:bg-green-400 focus:outline-none text-white bg-green-600 hover:bg-green-700 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-green-700 dark:hover:bg-green-600 dark:focus:ring-green-800">Gerar Insights</button>
@@ -205,7 +203,7 @@ async function createChart()  {
         </div>
 
         <div :hidden="!chartDataset" class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
+            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-xl sm:rounded-lg">
                 <div class="p-6 text-gray-900 dark:text-gray-100">
                     <div class="px-5 py-1">
                         <div class="flex flex-wrap">
