@@ -48,11 +48,10 @@ class GitHubController extends Controller
                       ?? RepositoryRepository::create($request->repository, $user->id);
 
         RepositoryRepository::syncCommits($repository);
-        $commits = CommitView::where('repository_id', $repository->id)->get();
+        $commits = CommitView::where('repository_id', $repository->id)
+            ->whereDateBetween('created_at_date', $request->since, $request->until)
+            ->get();
 
-        $since = Carbon::now()->subDays(90);
-        $until = Carbon::now();
-
-        return CommitsToChartResourceCollection::make($commits)->since($since)->until($until);
+        return CommitsToChartResourceCollection::make($commits)->since($request->since)->until($request->until);
     }
 }

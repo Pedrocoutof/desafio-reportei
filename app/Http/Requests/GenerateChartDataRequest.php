@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use Carbon\Carbon;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
@@ -36,5 +37,15 @@ class GenerateChartDataRequest extends FormRequest
             'message'   => 'Validation errors',
             'data'      => $validator->errors()
         ]));
+    }
+
+    protected function prepareForValidation()
+    {
+        if(!$this->since) {
+            $this->merge(['since' => Carbon::now()->subDays(90)]);
+        }
+        if(!$this->until) {
+            $this->merge(['until' => Carbon::now()]);
+        }
     }
 }

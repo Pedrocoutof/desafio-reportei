@@ -1,7 +1,6 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head } from '@inertiajs/vue3';
-import axios from "axios";
 import { usePage } from '@inertiajs/vue3';
 import { onMounted, ref } from "vue";
 import CircleLoading from "@/Components/CircleLoading.vue";
@@ -34,10 +33,6 @@ async function getRepositories() {
     }
     loadingRepositories.value = false;
 }
-function updateRepositories() {
-    console.log("Implementar")
-}
-
 async function generateInsights() {
     loadingCommitData.value = true;
 
@@ -49,7 +44,7 @@ async function generateInsights() {
         let response = await axiosPost('chart', params)
 
         if (response.status === 200) {
-            chartDataset.value = response.data.data;
+            chartDataset.value = response.data;
         }
     } catch (error) {
         console.error("Erro ao obter dados do gráfico:", error);
@@ -89,7 +84,6 @@ const formatThousands = (value) => Intl.NumberFormat('en-US', {
 }).format(value);
 
 async function createChart()  {
-
     if (chartDataset.value) {
         const ctx = await document.getElementById('chart').getContext('2d');
 
@@ -163,6 +157,7 @@ async function createChart()  {
     }
 }
 
+
 </script>
 
 <template>
@@ -197,7 +192,6 @@ async function createChart()  {
                                 </div>
                                 <InputSelect v-model="selectedRepository" :options="userRepositories" :disabled="loadingRepositories"></InputSelect>
                                 <CircleLoading v-if="loadingCommitData"></CircleLoading>
-                                <RefreshButton @click="updateRepositories"></RefreshButton>
                                 <button @click="generateInsights" type="button" :disabled="!selectedRepository || loadingCommitData" class="mx-2 disabled:pointer-events-none disabled:dark:bg-green-900 disabled:bg-green-400 focus:outline-none text-white bg-green-600 hover:bg-green-700 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-green-700 dark:hover:bg-green-600 dark:focus:ring-green-800">Gerar Insights</button>
                             </div>
                         </form>

@@ -10,6 +10,7 @@ class CommitsToChartResourceCollection extends ResourceCollection
 {
     protected $since;
     protected $until;
+    public static $wrap = false;
 
     public function since($value)
     {
@@ -30,14 +31,6 @@ class CommitsToChartResourceCollection extends ResourceCollection
      */
     public function toArray(Request $request): array
     {
-        if ($this->since === null) {
-            $this->since = Carbon::now()->subDays(90);
-        }
-
-        if ($this->until === null) {
-            $this->until = Carbon::now();
-        }
-
         $data = [];
 
         $period = Carbon::parse($this->since)->daysUntil(Carbon::parse($this->until))->toArray();
@@ -81,8 +74,8 @@ class CommitsToChartResourceCollection extends ResourceCollection
             "labels" => $dates,
             "totalCommits" => $totalCommits,
             "totalContributors" => count($result),
-            "avgCommitsContributor" => $totalCommits/count($result),
-            "avgCommitsDay" => number_format($totalCommits/count($dates), 2),
+            "avgCommitsContributor" => $totalCommits > 0 ? $totalCommits/count($result) : 0,
+            "avgCommitsDay" => $totalCommits > 0 ? number_format($totalCommits/count($dates), 2) : 0,
             "since" => $this->since->format('d/m'),
             "until" => $this->until->format('d/m'),
         ];

@@ -20,4 +20,9 @@ class CommitView extends Model
         'repository_id',
         'author_name'
     ];
+
+    public function scopeWhereDateBetween($query, $field, $startDate, $endDate)
+    {
+        return $query->whereBetween($field, [$startDate, $endDate]);
+    }
 }
