@@ -42,13 +42,17 @@ async function generateInsights() {
     loadingCommitData.value = true;
 
     try {
-        let response = await axios.get("http://127.0.0.1:8000/api/chart/" + props.auth.user.nickname + "/"+ selectedRepository.value);
+        let params = {
+            user: props.auth.user.nickname,
+            repository: selectedRepository.value
+        };
+        let response = await axiosPost('chart', params)
 
         if (response.status === 200) {
             chartDataset.value = response.data.data;
         }
     } catch (error) {
-        console.error("Error fetching chart data:", error);
+        console.error("Erro ao obter dados do gráfico:", error);
     }
 
     await createChart();

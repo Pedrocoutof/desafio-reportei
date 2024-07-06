@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\CommitsToChartResource;
 use App\Http\Resources\CommitsToChartResourceCollection;
 use App\Models\CommitView;
-use App\Models\Repository;
 use App\Models\User;
 use App\Repositories\RepositoryRepository;
 use App\Services\GitHubService;
@@ -39,15 +38,18 @@ class GitHubController extends Controller
         return response()->json($response);
     }
 
-    function generateChart(string $user, string $repository, string $since = null, string $until = null): CommitsToChartResourceCollection
+    function generateChart(Request $request)
     {
-        $user = User::where('nickname', $user)->first();
+        $user = User::where('nickname', $request->user)->first();
 
-        $repository = RepositoryRepository::getRepository($user->id, $repository)
-                      ?? RepositoryRepository::create($repository, $user->id);
+        $repository = RepositoryRepository::getRepository($user->id, $request->repository)
+                      ?? RepositoryRepository::create($request->repository, $user->id);
 
         RepositoryRepository::syncCommits($repository);
         $commits = CommitView::where('repository_id', $repository->id)->get();
+
+        $since = Carbon::now()->subDays(90);
+        $until = Carbon::now();
 
         return CommitsToChartResourceCollection::make($commits)->since($since)->until($until);
     }
