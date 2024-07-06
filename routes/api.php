@@ -8,7 +8,7 @@ Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
-Route::get('/repositories/{user}', [GitHubController::class, 'getRepositories']);
+Route::post('/repositories/', [GitHubController::class, 'getRepositories']);
 Route::get('/chart/{user}/{repository}', [GitHubController::class, 'generateChart']);
 
 Route::get('/repository', [GitHubController::class, 'getRepository']);

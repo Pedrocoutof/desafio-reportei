@@ -3,12 +3,13 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head } from '@inertiajs/vue3';
 import axios from "axios";
 import { usePage } from '@inertiajs/vue3';
-import { onMounted, ref, watch } from "vue";
+import { onMounted, ref } from "vue";
 import CircleLoading from "@/Components/CircleLoading.vue";
 import RefreshButton from "@/Components/RefreshButton.vue";
 import Chart from 'chart.js/auto';
 import 'chartjs-adapter-date-fns';
 import InputSelect from "@/Components/InputSelect.vue";
+import { axiosPost } from "@/api.js";
 
 const userRepositories = ref();
 const selectedRepository = ref(null);
@@ -22,13 +23,14 @@ const chartCanvas = ref(null);
 async function getRepositories() {
     loadingRepositories.value = true;
     try {
-        const response = await axios.get("http://127.0.0.1:8000/api/repositories/" + props.auth.user.nickname);
+        let params = {user: props.auth.user.nickname}
+        const response = await axiosPost('repositories', params)
 
         if (response.status === 200) {
             userRepositories.value = response.data;
         }
     } catch (error) {
-        console.error("Error fetching repositories:", error);
+        console.error("Erro ao obter repositorios", error);
     }
     loadingRepositories.value = false;
 }
@@ -43,7 +45,6 @@ async function generateInsights() {
         let response = await axios.get("http://127.0.0.1:8000/api/chart/" + props.auth.user.nickname + "/"+ selectedRepository.value);
 
         if (response.status === 200) {
-            console.log(response.data.data)
             chartDataset.value = response.data.data;
         }
     } catch (error) {
@@ -157,7 +158,6 @@ async function createChart()  {
         });
     }
 }
-
 
 </script>
 
