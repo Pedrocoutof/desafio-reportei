@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\GenerateChartDataRequest;
+use App\Http\Requests\GetRepositoriesRequest;
 use App\Http\Resources\CommitsToChartResource;
 use App\Http\Resources\CommitsToChartResourceCollection;
 use App\Models\CommitView;
@@ -14,7 +16,7 @@ use Illuminate\Http\Request;
 
 class GitHubController extends Controller
 {
-    function getRepositories(Request $request): \Illuminate\Http\JsonResponse
+    function getRepositories(GetRepositoriesRequest $request): \Illuminate\Http\JsonResponse
     {
         $response = GitHubService::getAllRepositories($request->user);
         return response()->json($response);
@@ -38,7 +40,7 @@ class GitHubController extends Controller
         return response()->json($response);
     }
 
-    function generateChart(Request $request)
+    function generateChart(GenerateChartDataRequest $request)
     {
         $user = User::where('nickname', $request->user)->first();
 
