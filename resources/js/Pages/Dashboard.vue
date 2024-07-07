@@ -4,11 +4,11 @@ import { Head } from '@inertiajs/vue3';
 import { usePage } from '@inertiajs/vue3';
 import { onMounted, ref } from "vue";
 import CircleLoading from "@/Components/CircleLoading.vue";
-import Chart from 'chart.js/auto';
-import 'chartjs-adapter-date-fns';
 import InputSelect from "@/Components/InputSelect.vue";
-import { axiosPost } from "@/api.js";
 import RefreshButton from "@/Components/RefreshButton.vue";
+import ChartComponent from "@/Components/Chart.vue"
+import { axiosPost } from "@/api.js";
+
 const userRepositories = ref();
 const selectedRepository = ref(null);
 const since = ref(new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]);
@@ -18,7 +18,6 @@ const loadingCommitData = ref(false);
 const { props } = usePage();
 
 const chartDataset = ref(null);
-const chartCanvas = ref(null);
 
 async function getRepositories() {
     loadingRepositories.value = true;
@@ -34,6 +33,7 @@ async function getRepositories() {
     }
     loadingRepositories.value = false;
 }
+
 async function updateRepositories() {
     loadingRepositories.value = true;
     let params = {user: props.auth.user.nickname}
@@ -41,6 +41,7 @@ async function updateRepositories() {
         .then(async (response) => response.status === 200 ? await getRepositories() : console.error(response));
     loadingRepositories.value = false;
 }
+
 async function generateInsights() {
     loadingCommitData.value = true;
 
@@ -60,97 +61,12 @@ async function generateInsights() {
         console.error("Erro ao obter dados do gráfico:", error);
     }
 
-    await createChart();
     loadingCommitData.value = false;
 }
 
 onMounted(async () => {
     await getRepositories();
-    Chart.defaults.font.family = '"Inter", sans-serif';
-    Chart.defaults.font.weight = '500';
-
-    await createChart()
 });
-
-const formatThousands = (value) => Intl.NumberFormat('en-US', {
-    maximumSignificantDigits: 3,
-    notation: 'compact',
-}).format(value);
-
-async function createChart()  {
-    if (chartDataset.value) {
-        const ctx = await document.getElementById('chart')?.getContext('2d');
-
-        if(chartCanvas.value) {
-            chartCanvas.value.destroy();
-        }
-        chartCanvas.value = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: chartDataset.value.labels,
-                datasets: chartDataset.value.datasets
-            },
-            options: {
-                layout: {
-                    padding: 20,
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        grid: {
-                            drawBorder: false,
-                        },
-                        ticks: {
-                            callback: (value) => formatThousands(value),
-                        },
-                    },
-                    x: {
-                        type: 'time',
-                        time: {
-                            parser: 'yyyy-MM-dd',
-                            unit: 'day',
-                            displayFormats: {
-                                day: 'dd MM',
-                            },
-                        },
-                        grid: {
-                            display: false,
-                            drawBorder: false,
-                        },
-                        ticks: {
-                            autoSkipPadding: 48,
-                            maxRotation: 0,
-                        },
-                    },
-                },
-                plugins: {
-                    legend: {
-                        position: 'bottom',
-                        align: 'end',
-                        display: true,
-                        labels: {
-                            color: 'rgb(99, 102, 241)'
-                        }
-                    },
-                    tooltip: {
-                        callbacks: {
-                            title: (context) => {
-                                const date = new Date(context[0].parsed.x);
-                                return date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
-                            },
-                        },
-                    },
-                },
-                interaction: {
-                    intersect: false,
-                    mode: 'nearest',
-                },
-                maintainAspectRatio: false,
-            },
-        });
-    }
-}
-
 </script>
 <template>
     <Head title="Dashboard" />
@@ -187,56 +103,7 @@ async function createChart()  {
             </div>
         </div>
 
-        <div :hidden="!chartDataset" class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-xl sm:rounded-lg">
-                <div class="p-6 text-gray-900 dark:text-gray-100">
-                    <div class="px-5 py-1">
-                        <div class="flex flex-wrap gap-4">
-                            <div v-if="chartDataset" class="flex items-center py-2">
-                                <div class="mr-5">
-                                    <div class="flex items-center">
-                                        <div class="text-3xl font-bold text-gray-800 mr-2 dark:text-gray-200">{{ chartDataset.totalContributors }}</div>
-                                    </div>
-                                    <div class="text-sm text-gray-500 dark:text-gray-400">Colaborador(es)</div>
-                                </div>
-                                <div class="hidden md:block w-px h-8 bg-gray-200 dark:bg-gray-800 mr-5" aria-hidden="true"></div>
-                            </div>
-                            <!-- Total de commits -->
-                            <div v-if="chartDataset" class="flex items-center py-2">
-                                <div class="mr-5">
-                                    <div class="flex items-center">
-                                        <div class="text-3xl font-bold text-gray-800 mr-2 dark:text-gray-200">{{ chartDataset.totalCommits }}</div>
-                                    </div>
-                                    <div class="text-sm text-gray-500 dark:text-gray-400">Total de commits</div>
-                                </div>
-                                <div class="hidden md:block w-px h-8 bg-gray-200 dark:bg-gray-800 mr-5" aria-hidden="true"></div>
-                            </div>
-                            <!-- Media commits/colborador -->
-                            <div v-if="chartDataset" class="flex items-center py-2">
-                                <div class="mr-5">
-                                    <div class="flex items-center">
-                                        <div class="text-3xl font-bold text-gray-800 mr-2 dark:text-gray-200">{{ chartDataset.avgCommitsDay }}</div>
-                                    </div>
-                                    <div class="text-sm text-gray-500 dark:text-gray-400">Média de commits por dia</div>
-                                </div>
-                            </div>
-                            <div v-if="chartDataset" class="ml-auto flex items-center py-2">
-                                <div class="mr-5">
-                                    <div class="flex items-center">
-                                        <div class="text-3xl font-bold text-gray-800 mr-2 dark:text-gray-200">{{ chartDataset.since }} - {{ chartDataset.until }}</div>
-                                    </div>
-                                    <div class="text-sm text-gray-500 dark:text-gray-400 text-end">Período analisado</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+        <ChartComponent v-if="chartDataset" :chartDataset="chartDataset"></ChartComponent>
 
-                    <div class="flex-grow">
-                        <canvas class="bg-white dark:bg-gray-800" id="chart" width="800" height="300"></canvas>
-                    </div>
-                </div>
-            </div>
-        </div>
     </AuthenticatedLayout>
 </template>
-

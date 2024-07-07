@@ -1,169 +1,159 @@
 <script setup>
-import {ref, watch, onMounted, onBeforeUnmount} from 'vue';
+import { onMounted, ref, defineProps, watch } from 'vue';
 import Chart from 'chart.js/auto';
 import 'chartjs-adapter-date-fns';
 
 const props = defineProps({
     chartDataset: {
         type: Object,
-        required: false
+        required: true
     }
 });
 
-const chartInstance = ref(null);
+let chartInstance = null;
 
-function createChart() {
-    if (chartInstance.value instanceof Chart) {
-        chartInstance.value.destroy();
-    }
+const formatThousands = (value) => Intl.NumberFormat('en-US', {
+    maximumSignificantDigits: 3,
+    notation: 'compact',
+}).format(value);
 
-    const formatThousands = (value) => Intl.NumberFormat('en-US', {
-        maximumSignificantDigits: 3,
-        notation: 'compact',
-    }).format(value);
+onMounted(async () => {
+    await createChart();
+});
 
-    Chart.defaults.font.family = '"Inter", sans-serif';
-    Chart.defaults.font.weight = '500';
-    Chart.defaults.color = 'rgb(148, 163, 184)';
-    Chart.defaults.scale.grid.color = 'rgb(241, 245, 249)';
-    Chart.defaults.plugins.tooltip.titleColor = 'rgb(30, 41, 59)';
-    Chart.defaults.plugins.tooltip.bodyColor = 'rgb(30, 41, 59)';
-    Chart.defaults.plugins.tooltip.backgroundColor = '#FFF';
-    Chart.defaults.plugins.tooltip.borderWidth = 0.5;
-    Chart.defaults.plugins.tooltip.borderColor = 'rgb(226, 232, 240)';
-    Chart.defaults.plugins.tooltip.displayColors = false;
-    Chart.defaults.plugins.tooltip.mode = 'nearest';
-    Chart.defaults.plugins.tooltip.intersect = false;
-    Chart.defaults.plugins.tooltip.position = 'nearest';
-    Chart.defaults.plugins.tooltip.caretSize = 0;
-    Chart.defaults.plugins.tooltip.caretPadding = 20;
-    Chart.defaults.plugins.tooltip.cornerRadius = 4;
-    Chart.defaults.plugins.tooltip.padding = 8;
+watch(() => props.chartDataset, async () => {
+    await createChart();
+}, { deep: true });
 
-    const ctx = document.getElementById('chart').getContext('2d');
-    chartInstance.value = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: props.chartDataset.data.labels,
-            datasets: props.chartDataset.data.datasets,
-        },
-        options: {
-            layout: {
-                padding: 20,
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    grid: {
-                        drawBorder: false,
-                    },
-                    ticks: {
-                        callback: (value) => formatThousands(value),
-                    },
+async function createChart() {
+    if (props.chartDataset) {
+        const ctx = await document.getElementById('chart')?.getContext('2d');
+
+        if (ctx) {
+            if (chartInstance) {
+                chartInstance.destroy(); // Destruir instância existente do gráfico
+            }
+
+            chartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: props.chartDataset.labels,
+                    datasets: props.chartDataset.datasets
                 },
-                x: {
-                    type: 'time',
-                    time: {
-                        parser: 'yyyy-MM-dd',
-                        unit: 'day',
-                        displayFormats: {
-                            day: 'dd MMM',
+                options: {
+                    layout: {
+                        padding: 20,
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                drawBorder: false,
+                            },
+                            ticks: {
+                                callback: (value) => formatThousands(value),
+                            },
+                        },
+                        x: {
+                            type: 'time',
+                            time: {
+                                parser: 'yyyy-MM-dd',
+                                unit: 'day',
+                                displayFormats: {
+                                    day: 'dd MM',
+                                },
+                            },
+                            grid: {
+                                display: false,
+                                drawBorder: false,
+                            },
+                            ticks: {
+                                autoSkipPadding: 48,
+                                maxRotation: 0,
+                            },
                         },
                     },
-                    grid: {
-                        display: false,
-                        drawBorder: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            align: 'end',
+                            display: true,
+                            labels: {
+                                color: 'rgb(99, 102, 241)'
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                title: (context) => {
+                                    const date = new Date(context[0].parsed.x);
+                                    return date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+                                },
+                            },
+                        },
                     },
-                    ticks: {
-                        autoSkipPadding: 48,
-                        maxRotation: 0,
+                    interaction: {
+                        intersect: false,
+                        mode: 'nearest',
                     },
+                    maintainAspectRatio: false,
                 },
-            },
-            plugins: {
-                legend: {
-                    position: 'bottom',
-                    align: 'end',
-                    display: true,
-                    labels: {
-                        color: 'rgb(99, 102, 241)'
-                    }
-                },
-                tooltip: {
-                    callbacks: {
-                        title: () => false,
-                        label: (context) => formatThousands(context.parsed.y),
-                    },
-                },
-            },
-            interaction: {
-                intersect: false,
-                mode: 'nearest',
-            },
-            maintainAspectRatio: false,
-        },
-    });
-}
-
-onMounted(() => {
-    createChart();
-});
-
-watch(() => props.chartDataset, (newDataset) => {
-    chartInstance.value = newDataset
-    createChart();
-});
-
-onBeforeUnmount(() => {
-    if (chartInstance.value instanceof Chart) {
-        chartInstance.value.destroy();
+            });
+        }
     }
-});
+}
 
 </script>
 
 <template>
-    <!-- Chart widget -->
-    <div v-if="chartDataset" class="flex flex-col col-span-full xl:col-span-8 bg-white dark:bg-gray-800 rounded-xl shadow-2xl">
-        <div class="px-5 py-1">
-            <div class="flex flex-wrap">
-                <!-- Total de commits -->
-                <div class="flex items-center py-2">
-                    <div class="mr-5">
-                        <div class="flex items-center">
-                            <div class="text-3xl font-bold text-gray-800 mr-2 dark:text-gray-100">24.7K</div>
-                            <div class="text-sm font-medium text-green-500">+49%</div>
+    <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+        <div class="bg-white dark:bg-gray-800 overflow-hidden sm:rounded-lg shadow-xl">
+            <div class="p-6 text-gray-900 dark:text-gray-100">
+                <div class="px-5 py-1">
+                    <div class="flex flex-wrap gap-4">
+                        <div v-if="chartDataset" class="flex items-center py-2">
+                            <div class="mr-5">
+                                <div class="flex items-center">
+                                    <div class="text-3xl font-bold text-gray-800 mr-2 dark:text-gray-200">{{ chartDataset.totalContributors }}</div>
+                                </div>
+                                <div class="text-sm text-gray-500 dark:text-gray-400">Colaborador(es)</div>
+                            </div>
+                            <div class="hidden md:block w-px h-8 bg-gray-200 dark:bg-gray-800 mr-5" aria-hidden="true"></div>
                         </div>
-                        <div class="text-sm text-gray-500 dark:text-gray-400">Colaboradores</div>
+                        <!-- Total de commits -->
+                        <div v-if="chartDataset" class="flex items-center py-2">
+                            <div class="mr-5">
+                                <div class="flex items-center">
+                                    <div class="text-3xl font-bold text-gray-800 mr-2 dark:text-gray-200">{{ chartDataset.totalCommits }}</div>
+                                </div>
+                                <div class="text-sm text-gray-500 dark:text-gray-400">Total de commits</div>
+                            </div>
+                            <div class="hidden md:block w-px h-8 bg-gray-200 dark:bg-gray-800 mr-5" aria-hidden="true"></div>
+                        </div>
+                        <!-- Media commits/colaborador -->
+                        <div v-if="chartDataset" class="flex items-center py-2">
+                            <div class="mr-5">
+                                <div class="flex items-center">
+                                    <div class="text-3xl font-bold text-gray-800 mr-2 dark:text-gray-200">{{ chartDataset.avgCommitsDay }}</div>
+                                </div>
+                                <div class="text-sm text-gray-500 dark:text-gray-400">Média de commits por dia</div>
+                            </div>
+                        </div>
+                        <div v-if="chartDataset" class="ml-auto flex items-center py-2">
+                            <div class="mr-5">
+                                <div class="flex items-center">
+                                    <div class="text-3xl font-bold text-gray-800 mr-2 dark:text-gray-200">{{ chartDataset.since }} - {{ chartDataset.until }}</div>
+                                </div>
+                                <div class="text-sm text-gray-500 dark:text-gray-400 text-end">Período analisado</div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="hidden md:block w-px h-8 bg-gray-200 dark:bg-gray-800 mr-5" aria-hidden="true"></div>
                 </div>
-                <!-- Total Pageviews -->
-                <div class="flex items-center py-2">
-                    <div class="mr-5">
-                        <div class="flex items-center">
-                            <div class="text-3xl font-bold text-gray-800 mr-2 dark:text-gray-100">56.9K</div>
-                            <div class="text-sm font-medium text-green-500">+7%</div>
-                        </div>
-                        <div class="text-sm text-gray-500 dark:text-gray-400">Total de commits</div>
-                    </div>
-                    <div class="hidden md:block w-px h-8 bg-gray-200 dark:bg-gray-800 mr-5" aria-hidden="true"></div>
-                </div>
-                <!-- Media commits/colborador -->
-                <div class="flex items-center py-2">
-                    <div class="mr-5">
-                        <div class="flex items-center">
-                            <div class="text-3xl font-bold text-gray-800 mr-2 dark:text-gray-100">54%</div>
-                            <div class="text-sm font-medium text-yellow-500">-7%</div>
-                        </div>
-                        <div class="text-sm text-gray-500 dark:text-gray-400">Média de commits/colaborador</div>
-                    </div>
+
+                <div class="flex-grow">
+                    <canvas class="bg-white dark:bg-gray-800" id="chart" ref="chartCanvas" width="800" height="300"></canvas>
                 </div>
             </div>
         </div>
-
-        <div class="flex-grow">
-            <canvas class="bg-white dark:bg-gray-800" id="chart" width="800" height="300"></canvas>
-        </div>
     </div>
 </template>
+

@@ -4,7 +4,8 @@ import { defineProps, defineEmits } from 'vue';
 const props = defineProps({
     modelValue: {
         type: String,
-        required: true
+        required: false,
+        default: ''
     },
     options: {
         type: Array,
