@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Builder;
 
 class User extends Authenticatable
 {
@@ -47,5 +48,17 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    /**
+     * Escopo criado para abstrair busca do usuario
+     *
+     * @param Builder $query
+     * @param string $nickname
+     * @return Builder
+     */
+    public function scopeWhereNickname(Builder $query, string $nickname): Builder
+    {
+        return $query->where('nickname', $nickname);
     }
 }

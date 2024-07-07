@@ -18,10 +18,16 @@ class Repository extends Model
         'last_synced'
     ];
 
+    /**
+     * @return BelongsTo
+     */
     function owner() : BelongsTo {
         return $this->belongsTo(User::class, 'owner', 'id');
     }
 
+    /**
+     * @return HasMany
+     */
     function commits() : HasMany {
         return $this->HasMany(Commit::class);
     }

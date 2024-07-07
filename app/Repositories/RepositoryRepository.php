@@ -7,21 +7,20 @@ use App\Services\GitHubService;
 use Carbon\Carbon;
 use DateTime;
 use DateTimeZone;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 
 class RepositoryRepository
 {
-    static public function findByUserIdAndRepositoryName(int $userId, string $repositoryName)
-    {
-        return Repository::where('owner', $userId)->where('name', $repositoryName)->first();
-    }
-
-    static public function findUserRepositories(int $userId)
-    {
-        return Repository::where('owner', $userId)->get();
-    }
-
+    /**
+     * Função criada para abstrair create de um repositório.
+     *
+     * @param $name
+     * @param $owner
+     * @return Repository|null
+     */
     static public function create($name, $owner): Repository|null
     {
         $createdRepository = new Repository;
@@ -31,7 +30,14 @@ class RepositoryRepository
         return $createdRepository->save() ? $createdRepository : null;
     }
 
-    static public function addCommits(int $repositoryId, array $commits)
+    /**
+     * Função utilizada para inserir commits de um determinado repositório.
+     *
+     * @param int $repositoryId
+     * @param array $commits
+     * @return void
+     */
+    static public function addCommits(int $repositoryId, array $commits): void
     {
         $now = Carbon::now('GMT-3')->toDateTimeString();
         $repository = Repository::where('id', $repositoryId)->first();
@@ -54,12 +60,14 @@ class RepositoryRepository
 
     }
 
-    private static function convertToTimezone($date) {
-        $datetime = new DateTime($date, new DateTimeZone('UTC'));
-        $datetime->setTimezone(new DateTimeZone('America/Sao_Paulo'));
-        return $datetime->format('Y-m-d H:i:s');
-    }
-
+    /**
+     *
+     * Função utilizada para sincronizar os commits de um determinado repositório, conferindo a data de sua ultima sincronização.
+     *
+     * @param Repository $repository
+     * @return JsonResponse
+     * @throws \Exception
+     */
     static public function syncCommits(Repository $repository): \Illuminate\Http\JsonResponse
     {
         $owner = $repository->owner()->first();
@@ -68,6 +76,14 @@ class RepositoryRepository
         return response()->json([], 200);
     }
 
+    /**
+     * Função utilizada para obter um repositório armazenado no banco
+     *
+     * @param $userId
+     * @param $repository
+     * @param $relationships
+     * @return Builder|Model|null
+     */
     static function getRepository($userId, $repository, $relationships = []): \Illuminate\Database\Eloquent\Builder|Model|null
     {
         $relationships[] = 'owner';
@@ -77,5 +93,17 @@ class RepositoryRepository
             ->first();
 
         return $repository ?? null;
+    }
+
+    /**
+     * @param $date
+     * @return string
+     * @throws \Exception
+     */
+    private static function convertToTimezone($date): string
+    {
+        $datetime = new DateTime($date, new DateTimeZone('UTC'));
+        $datetime->setTimezone(new DateTimeZone('America/Sao_Paulo'));
+        return $datetime->format('Y-m-d H:i:s');
     }
 }

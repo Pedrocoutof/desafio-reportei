@@ -14,6 +14,9 @@ class GitHubService
     private static $baseUrl;
     private static $token;
 
+    /**
+     * @return void
+     */
     public static function init(): void
     {
         self::$baseUrl = 'https://api.github.com';
@@ -21,12 +24,24 @@ class GitHubService
         self::$token = env('GITHUB_TOKEN');
     }
 
-    private static function request($method, $url, $options = [])
+    /**
+     * @param $method
+     * @param $url
+     * @param array $options
+     * @return mixed
+     */
+    private static function request($method, $url, array $options = []): mixed
     {
         $options['headers']['Authorization'] = "Bearer " . self::$token;
         return self::$client->request($method, $url, $options);
     }
 
+    /**
+     * @param string $user
+     * @param int $perPage
+     * @param int $page
+     * @return array
+     */
     public static function getAllRepositories(string $user, int $perPage = 30, int $page = 1): array
     {
         self::init();
@@ -54,7 +69,12 @@ class GitHubService
         }, $repositories);
     }
 
-    public static function getRepository(string $user, string $repository)
+    /**
+     * @param string $user
+     * @param string $repository
+     * @return mixed
+     */
+    public static function getRepository(string $user, string $repository): mixed
     {
         self::init();
         $url = self::$baseUrl . "/repos/{$user}/{$repository}";
@@ -62,23 +82,15 @@ class GitHubService
         return json_decode($response->getBody()->getContents());
     }
 
-    public static function getAllBranches(string $user, string $repository)
-    {
-        self::init();
-        $url = self::$baseUrl . "/repos/{$user}/{$repository}/branches";
-        $response = self::request('GET', $url);
-        return json_decode($response->getBody()->getContents());
-    }
-
-    public static function getBranch($user, $repository, $branch)
-    {
-        self::init();
-        $url = self::$baseUrl . "/repos/{$user}/{$repository}/branches/{$branch}";
-        $response = self::request('GET', $url);
-        return json_decode($response->getBody()->getContents());
-    }
-
-    public static function getAllCommits($user, $repo, $since, $perPage = 30)
+    /**
+     * @param $user
+     * @param $repo
+     * @param $since
+     * @param int $perPage
+     * @return array
+     * @throws \Exception
+     */
+    public static function getAllCommits($user, $repo, $since, int $perPage = 30): array
     {
         self::init();
         $url = self::$baseUrl . "/repos/{$user}/{$repo}/commits";
@@ -102,7 +114,13 @@ class GitHubService
         return $commits;
     }
 
-    private static function convertToUTC($date, $timezone = 'America/Sao_Paulo')
+    /**
+     * @param $date
+     * @param string $timezone = 'America/Sao_Paulo'
+     * @return string
+     * @throws \Exception
+     */
+    private static function convertToUTC($date, string $timezone = 'America/Sao_Paulo'): string
     {
         $datetime = new DateTime($date, new DateTimeZone($timezone));
         $datetime->setTimezone(new DateTimeZone('UTC'));

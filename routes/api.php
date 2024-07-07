@@ -11,8 +11,3 @@ Route::get('/user', function (Request $request) {
 Route::post('/repositories', [GitHubController::class, 'getRepositories']);
 Route::post('/chart', [GitHubController::class, 'generateChart']);
 Route::post('/clear-repositories-cache', [GitHubController::class, 'clearRepositoriesCache']);
-
-Route::get('/repository', [GitHubController::class, 'getRepository']);
-Route::get('/branches', [GitHubController::class, 'getAllBranches']);
-Route::get('/commits', [GitHubController::class, 'getAllCommits']);
-Route::get('/branch', [GitHubController::class, 'getBranch']);

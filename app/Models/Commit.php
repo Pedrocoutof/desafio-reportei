@@ -18,6 +18,9 @@ class Commit extends Model
         'created_at'
     ];
 
+    /**
+     * @return BelongsTo
+     */
     public function repository() :BelongsTo {
         return $this->belongsTo(Repository::class);
     }
