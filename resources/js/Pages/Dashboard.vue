@@ -66,26 +66,10 @@ async function generateInsights() {
 
 onMounted(async () => {
     await getRepositories();
-
     Chart.defaults.font.family = '"Inter", sans-serif';
     Chart.defaults.font.weight = '500';
-    Chart.defaults.color = 'rgb(148, 163, 184)';
-    Chart.defaults.scale.grid.color = 'rgba(140,140,140,0.45)';
-    Chart.defaults.plugins.tooltip.titleColor = 'rgb(30, 41, 59)';
-    Chart.defaults.plugins.tooltip.bodyColor = 'rgb(30, 41, 59)';
-    Chart.defaults.plugins.tooltip.backgroundColor = '#FFF';
-    Chart.defaults.plugins.tooltip.borderWidth = 0.5;
-    Chart.defaults.plugins.tooltip.borderColor = 'rgb(226, 232, 240)';
-    Chart.defaults.plugins.tooltip.displayColors = false;
-    Chart.defaults.plugins.tooltip.mode = 'nearest';
-    Chart.defaults.plugins.tooltip.intersect = false;
-    Chart.defaults.plugins.tooltip.position = 'nearest';
-    Chart.defaults.plugins.tooltip.caretSize = 0;
-    Chart.defaults.plugins.tooltip.caretPadding = 20;
-    Chart.defaults.plugins.tooltip.cornerRadius = 4;
-    Chart.defaults.plugins.tooltip.padding = 8;
 
-    createChart()
+    await createChart()
 });
 
 const formatThousands = (value) => Intl.NumberFormat('en-US', {
@@ -168,7 +152,6 @@ async function createChart()  {
 }
 
 </script>
-
 <template>
     <Head title="Dashboard" />
 
@@ -183,26 +166,15 @@ async function createChart()  {
                     <div class="p-6 text-gray-900 dark:text-gray-100">
                         <form class="max-w">
                             <label class="block mb-2 text-sm font-medium text-gray-600 dark:text-gray-200">Selecione um repositório:</label>
-                            <div class="flex flex-wrap items-center">
-
-                                <div class="relative z-10 flex-shrink-0">
-                                    <button class="hidden sm:inline-flex items-center py-2.5 px-4 text-sm font-medium text-center text-gray-500 bg-gray-100 border border-gray-300 rounded-l-lg hover:bg-gray-200 focus:outline-none focus:ring-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600 dark:focus:ring-gray-700 dark:text-gray-300 dark:border-gray-600" type="button">
-                                        {{ $page.props.auth.user.nickname }} /
-                                    </button>
-
-                                    <div id="dropdown-org" class="absolute mt-2 hidden bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700">
-                                        <ul class="py-2 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="states-button">
-                                            <li>
-                                                <button type="button" class="inline-flex w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-600 dark:hover:text-white">
-                                                    <div class="inline-flex items-center">United States</div>
-                                                </button>
-                                            </li>
-                                        </ul>
-                                    </div>
-                                </div>
+                            <div class="flex flex-wrap items-center gap-y-2">
+                                <button class="hidden sm:inline-flex items-center py-2.5 px-4 text-sm font-medium text-center text-gray-500 bg-gray-100 border border-gray-300 rounded-l-lg hover:bg-gray-200 focus:outline-none focus:ring-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600 dark:focus:ring-gray-700 dark:text-gray-300 dark:border-gray-600" type="button">
+                                    {{ $page.props.auth.user.nickname }} /
+                                </button>
                                 <InputSelect v-model="selectedRepository" :options="userRepositories" :disabled="loadingRepositories"></InputSelect>
-                                <input v-model="since" class="rounded-lg bg-gray-50 border-gray-300 text-gray-500 text" type="date">
-                                <input v-model="until" class="rounded-lg bg-gray-50 border-gray-300 text-gray-500 text" type="date">
+                                <p class="pr-1.5 text-gray-500 dark:text-gray-300">De</p>
+                                <input v-model="since" class="rounded-lg bg-gray-50 border-gray-300 text-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300" type="date">
+                                <p class="px-1.5 text-gray-500 dark:text-gray-300">Até</p>
+                                <input v-model="until" class="rounded-lg bg-gray-50 border-gray-300 text-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300" type="date">
                                 <CircleLoading v-if="loadingCommitData || loadingRepositories"></CircleLoading>
                                 <RefreshButton :disabled="loadingRepositories" @click="updateRepositories"></RefreshButton>
                                 <button @click="generateInsights" type="button" :disabled="!selectedRepository || loadingCommitData" class="w-full sm:w-auto mx-2 my-2 sm:my-0 disabled:pointer-events-none disabled:dark:bg-green-900 disabled:bg-green-400 focus:outline-none text-white bg-green-600 hover:bg-green-700 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-green-700 dark:hover:bg-green-600 dark:focus:ring-green-800">
@@ -219,8 +191,7 @@ async function createChart()  {
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-xl sm:rounded-lg">
                 <div class="p-6 text-gray-900 dark:text-gray-100">
                     <div class="px-5 py-1">
-                        <div class="flex flex-wrap">
-                            <!-- Total de commits -->
+                        <div class="flex flex-wrap gap-4">
                             <div v-if="chartDataset" class="flex items-center py-2">
                                 <div class="mr-5">
                                     <div class="flex items-center">
@@ -268,3 +239,4 @@ async function createChart()  {
         </div>
     </AuthenticatedLayout>
 </template>
+
