@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\ClearRepositoriesCacheRequest;
 use App\Http\Requests\GenerateChartDataRequest;
 use App\Http\Requests\GetRepositoriesRequest;
 use App\Http\Resources\CommitsToChartResource;
@@ -13,13 +14,28 @@ use App\Repositories\RepositoryRepository;
 use App\Services\GitHubService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class GitHubController extends Controller
 {
     function getRepositories(GetRepositoriesRequest $request): \Illuminate\Http\JsonResponse
     {
-        $response = GitHubService::getAllRepositories($request->user);
+        $cacheKey = 'repositories_' . $request->user;
+        $response = Cache::remember($cacheKey, now()->addMinutes(10), function () use ($request) {
+            return GitHubService::getAllRepositories($request->user);
+        });
+
         return response()->json($response);
+    }
+    function clearRepositoriesCache(ClearRepositoriesCacheRequest $request)
+    {
+        $cacheKey = 'repositories_' . $request->user;
+
+        if (Cache::has($cacheKey)) {
+            Cache::forget($cacheKey);
+        }
+
+        return response()->json(["message" => "Cache excluído com sucesso."]);
     }
 
     function getRepository(Request $request): \Illuminate\Http\JsonResponse

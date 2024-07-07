@@ -45,7 +45,13 @@ class GitHubService
             $page++;
         } while (count($newRepositories) === $perPage);
 
-        return $repositories;
+        return array_map(function ($repo) {
+                return [
+                    'name' => $repo['name'],
+                    'id' => $repo['id'],
+                    'owner' => $repo['owner']['login'],
+                ];
+        }, $repositories);
     }
 
     public static function getRepository(string $user, string $repository)

@@ -8,6 +8,7 @@ import Chart from 'chart.js/auto';
 import 'chartjs-adapter-date-fns';
 import InputSelect from "@/Components/InputSelect.vue";
 import { axiosPost } from "@/api.js";
+import RefreshButton from "@/Components/RefreshButton.vue";
 
 const userRepositories = ref();
 const selectedRepository = ref(null);
@@ -30,6 +31,13 @@ async function getRepositories() {
     } catch (error) {
         console.error("Erro ao obter repositorios", error);
     }
+    loadingRepositories.value = false;
+}
+async function updateRepositories() {
+    loadingRepositories.value = true;
+    let params = {user: props.auth.user.nickname}
+    await axiosPost('clear-repositories-cache', params)
+        .then(async (response) => response.status === 200 ? await getRepositories() : console.error(response));
     loadingRepositories.value = false;
 }
 async function generateInsights() {
@@ -191,7 +199,8 @@ async function createChart()  {
                                     </div>
                                 </div>
                                 <InputSelect v-model="selectedRepository" :options="userRepositories" :disabled="loadingRepositories"></InputSelect>
-                                <CircleLoading v-if="loadingCommitData"></CircleLoading>
+                                <CircleLoading v-if="loadingCommitData || loadingRepositories"></CircleLoading>
+                                <RefreshButton :disabled="loadingRepositories" @click="updateRepositories"></RefreshButton>
                                 <button @click="generateInsights" type="button" :disabled="!selectedRepository || loadingCommitData" class="w-full sm:w-auto mx-2 my-2 sm:my-0 disabled:pointer-events-none disabled:dark:bg-green-900 disabled:bg-green-400 focus:outline-none text-white bg-green-600 hover:bg-green-700 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-green-700 dark:hover:bg-green-600 dark:focus:ring-green-800">
                                     Gerar Insights
                                 </button>
