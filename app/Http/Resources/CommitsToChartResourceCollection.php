@@ -33,7 +33,10 @@ class CommitsToChartResourceCollection extends ResourceCollection
     {
         $data = [];
 
-        $period = Carbon::parse($this->since)->daysUntil(Carbon::parse($this->until))->toArray();
+        $parsedSince = Carbon::parse($this->since);
+        $parsedUntil = Carbon::parse($this->until);
+
+        $period = $parsedSince->daysUntil($parsedUntil)->toArray();
         $dates = array_map(fn($date) => $date->format('Y-m-d'), $period);
 
         foreach ($this->collection as $commit) {
@@ -76,8 +79,8 @@ class CommitsToChartResourceCollection extends ResourceCollection
             "totalContributors" => count($result),
             "avgCommitsContributor" => $totalCommits > 0 ? $totalCommits/count($result) : 0,
             "avgCommitsDay" => $totalCommits > 0 ? number_format($totalCommits/count($dates), 2, ',') : 0,
-            "since" => $this->since->format('d/m'),
-            "until" => $this->until->format('d/m'),
+            "since" => $parsedSince->format('d/m'),
+            "until" => $parsedUntil->format('d/m'),
         ];
     }
 }
